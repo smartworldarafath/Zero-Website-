@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Zero AI Learner - The Neon Scholar Initiative</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#c3c0ff",
+            "outline-variant": "#464555",
+            "on-error": "#690005",
+            "tertiary-fixed": "#f0dbff",
+            "on-error-container": "#ffdad6",
+            "primary-fixed-dim": "#c3c0ff",
+            "surface-container-lowest": "#0e0e0e",
+            "surface-container-highest": "#353534",
+            "surface-container-high": "#2a2a2a",
+            "on-primary-fixed": "#0f0069",
+            "primary-container": "#4f46e5",
+            "inverse-primary": "#4d44e3",
+            "surface-variant": "#353534",
+            "secondary-container": "#00b954",
+            "secondary-fixed": "#6bff8f",
+            "on-secondary-fixed": "#002109",
+            "on-primary-fixed-variant": "#3323cc",
+            "inverse-surface": "#e5e2e1",
+            "surface-tint": "#c3c0ff",
+            "on-secondary-fixed-variant": "#005321",
+            "on-surface": "#e5e2e1",
+            "on-primary-container": "#dad7ff",
+            "secondary": "#4ae176",
+            "on-secondary": "#003915",
+            "on-surface-variant": "#c7c4d8",
+            "on-tertiary-fixed": "#2c0051",
+            "on-tertiary-fixed-variant": "#6900b3",
+            "primary-fixed": "#e2dfff",
+            "background": "#131313",
+            "outline": "#918fa1",
+            "on-primary": "#1d00a5",
+            "surface-dim": "#131313",
+            "on-secondary-container": "#004119",
+            "tertiary": "#ddb7ff",
+            "surface-container-low": "#1c1b1b",
+            "on-background": "#e5e2e1",
+            "inverse-on-surface": "#313030",
+            "tertiary-container": "#862dd4",
+            "surface-container": "#201f1f",
+            "surface": "#131313",
+            "surface-bright": "#393939",
+            "error-container": "#93000a",
+            "on-tertiary-container": "#ebd2ff",
+            "error": "#ffb4ab",
+            "tertiary-fixed-dim": "#ddb7ff",
+            "on-tertiary": "#490080"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
+    .glass-morphism {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .neon-glow {
+      box-shadow: 0 0 20px rgba(74, 225, 118, 0.2);
+    }
+    .logo-glow {
+      text-shadow: 0 0 15px rgba(79, 70, 229, 0.4), 0 0 30px rgba(0, 185, 84, 0.2);
+    }
+    body {
+      background: transparent;
+      color: #e5e2e1;
+      overflow-x: hidden;
+    }
+    
+    /* ── WALLPAPER ── */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url('/Green Wal p.webp');
+      background-attachment: fixed;
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      filter: blur(2px);
+      z-index: -2;
+      transform: scale(1.03);
+    }
+
+    /* ── OVERLAY ── */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    .noise {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 1000; opacity: .4;
+    }
+
+    /* Automatic Responsive System */
+    html { font-size: 16px; }
+    @media screen and (max-width: 1280px) { html { font-size: 15px; } }
+    @media screen and (max-width: 1024px) { html { font-size: 14px; } }
+    @media screen and (max-width: 768px) { html { font-size: clamp(12px, 2vw + 6px, 14px); } }
+    @media screen and (max-width: 480px) { html { font-size: clamp(10px, 3.5vw, 13px); } }
+  </style>
+</head>
+<body class="font-body selection:bg-secondary/30">
+  <div class="noise"></div>
+  <!-- TopNavBar -->
+  <nav class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-[#131313]/80 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
+    <div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+      <div class="flex items-center gap-2 group cursor-pointer active:scale-95 transition-all duration-300">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4f46e5] to-[#00b954] flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-xl font-bold">bolt</span>
+        </div>
+        <div class="text-xl font-black tracking-tight bg-gradient-to-r from-white via-[#c3c0ff] to-white bg-clip-text text-transparent logo-glow font-black tracking-tight">
+          Zero AI Learner
+        </div>
+      </div>
+      <div class="hidden md:flex items-center gap-10">
+        <a class="text-[#4ae176] text-sm font-bold tracking-tight cursor-pointer hover:opacity-80 transition-all" href="#features">Features</a>
+        <a class="text-[#c3c0ff]/70 text-sm font-medium hover:text-[#c3c0ff] transition-colors tracking-tight cursor-pointer active:scale-95" href="#how-it-works">How it Works</a>
+        <a class="text-[#c3c0ff]/70 text-sm font-medium hover:text-[#c3c0ff] transition-colors tracking-tight cursor-pointer active:scale-95" onclick="window.parent.postMessage('open-pricing', '*')">Pricing</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <button onclick="window.parent.postMessage('open-pricing', '*')" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary-container to-secondary-container text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] transition-all duration-300 active:scale-95">
+          Get Started
+        </button>
+      </div>
+    </div>
+  </nav>
+  <!-- Hero Section -->
+  <section class="relative pt-48 pb-24 px-8 overflow-hidden">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
+      <div class="flex-1 text-left z-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high border border-outline-variant/20 text-secondary text-[10px] font-black tracking-[0.2em] uppercase mb-8">
+          <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+          The Future of Intelligence
+        </div>
+        <h1 class="text-6xl md:text-[5.5rem] font-black tracking-tighter leading-[0.85] mb-8 bg-gradient-to-br from-white via-white to-secondary/50 bg-clip-text text-transparent">
+          Master Anything <br/> Faster with AI
+        </h1>
+        <p class="text-on-surface-variant text-xl leading-relaxed max-w-xl mb-12 opacity-90">
+          Shatter the learning curve with personalized neural paths, real-time tutoring, and cognitive compression technology.
+        </p>
+        <div class="flex flex-wrap gap-5">
+          <button onclick="window.parent.postMessage('open-pricing', '*')" class="px-10 py-4 rounded-full bg-gradient-to-r from-primary-container to-secondary-container text-white font-bold hover:scale-105 hover:shadow-2xl hover:shadow-primary-container/40 transition-all duration-300 active:scale-95">
+            Start Learning
+          </button>
+          <button class="px-10 py-4 rounded-full bg-surface-container-high/40 glass-morphism border border-outline-variant/20 text-on-surface font-bold hover:bg-surface-container-high transition-all duration-300 flex items-center gap-2">
+            <span class="material-symbols-outlined">play_circle</span>
+            Watch Demo
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 relative">
+        <div class="absolute -top-20 -right-20 w-96 h-96 bg-primary-container/20 rounded-full blur-[120px]"></div>
+        <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-secondary-container/10 rounded-full blur-[100px]"></div>
+        <img alt="Futuristic abstract AI brain visualization" class="relative z-10 w-full max-w-xl rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(79,70,229,0.3)] object-cover" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"/>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Live AI Practice Sandbox -->
+  <section class="py-20 bg-surface-container-low/40 border-y border-outline-variant/10 relative">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <span class="px-4 py-1.5 rounded-full bg-secondary/10 border border-secondary/30 text-secondary text-xs font-bold font-mono uppercase tracking-widest">Interactive Practice Engine</span>
+        <h2 class="text-4xl md:text-5xl font-black mt-4 mb-4">Try Live AI Learning Studio</h2>
+        <p class="text-on-surface-variant text-base">Enter any topic below to test our neural summary and interactive quiz engine right now.</p>
+      </div>
+
+      <div class="max-w-3xl mx-auto bg-surface-container-high/80 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
+        <div class="flex flex-col sm:flex-row gap-4 mb-8">
+          <input id="demo-topic" type="text" placeholder="e.g. Artificial Intelligence, Quantum Physics, React.js..." class="flex-1 px-6 py-4 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 text-white font-medium focus:outline-none focus:border-secondary transition-all" value="Machine Learning Foundations" />
+          <button onclick="runDemoAi()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container text-white font-bold hover:scale-105 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">bolt</span> Generate Summary
+          </button>
+        </div>
+
+        <div id="demo-output" class="p-6 rounded-2xl bg-surface-container-lowest border border-white/5 space-y-4">
+          <div class="flex items-center gap-2 text-secondary font-bold text-sm font-mono">
+            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            NEURAL COGNITIVE SUMMARY GENERATED
+          </div>
+          <h4 id="output-title" class="text-2xl font-black text-white">Machine Learning Foundations</h4>
+          <p id="output-body" class="text-on-surface-variant leading-relaxed text-sm">
+            Machine Learning is a subset of AI enabling computer algorithms to learn from data patterns automatically without explicit programming. Key models include Supervised Learning (classification), Unsupervised Learning (clustering), and Reinforcement Learning (reward-based adaptation).
+          </p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="px-3 py-1 rounded-lg bg-secondary/10 border border-secondary/20 text-secondary text-xs font-mono font-bold">✓ Pattern Recognition</span>
+            <span class="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-mono font-bold">✓ Neural Weights</span>
+            <span class="px-3 py-1 rounded-lg bg-tertiary/10 border border-tertiary/20 text-tertiary text-xs font-mono font-bold">✓ Loss Optimization</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof -->
+  <section class="py-16 border-y border-outline-variant/10 bg-surface-container-low/20">
+    <div class="max-w-7xl mx-auto px-8">
+      <p class="text-center text-outline font-label text-[10px] tracking-[0.3em] uppercase mb-12 opacity-60">Trusted by 2M+ learners worldwide from</p>
+      <div class="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
+        <div class="text-2xl font-bold font-serif italic text-on-surface-variant">STANFORD</div>
+        <div class="text-2xl font-bold font-sans text-on-surface-variant">MIT</div>
+        <div class="text-2xl font-black text-on-surface-variant">OXFORD</div>
+        <div class="text-2xl font-light tracking-widest text-on-surface-variant">HARVARD</div>
+        <div class="text-2xl font-serif text-on-surface-variant">CAMBRIDGE</div>
+      </div>
+    </div>
+  </section>
+  <!-- Features Grid -->
+  <section class="py-32 px-8 relative" id="features">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
+        <div class="max-w-2xl">
+          <h2 class="text-5xl font-black tracking-tight mb-8">Built for the <br/><span class="text-secondary">Next Gen</span> Learner</h2>
+          <p class="text-on-surface-variant text-lg leading-relaxed">Harness the power of the most advanced language models tailored for cognitive retention and speed.</p>
+        </div>
+        <div class="hidden md:block">
+          <div class="w-24 h-1.5 bg-gradient-to-r from-secondary to-transparent rounded-full"></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="group p-10 rounded-3xl bg-surface-container-low border border-outline-variant/10 hover:border-secondary/30 transition-all duration-500 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full"></div>
+          <div class="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center mb-8 group-hover:bg-secondary/20 group-hover:rotate-6 transition-all duration-500">
+            <span class="material-symbols-outlined text-secondary text-3xl">auto_awesome</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">AI Summaries</h3>
+          <p class="text-on-surface-variant leading-relaxed mb-8">Distill massive textbooks and research papers into core insights in seconds. Compression without loss.</p>
+          <div class="flex items-center gap-2 text-secondary font-bold text-sm group-hover:translate-x-2 transition-transform cursor-pointer">
+            Learn more <span class="material-symbols-outlined">arrow_forward</span>
+          </div>
+        </div>
+        <!-- Feature 2 -->
+        <div class="group p-10 rounded-3xl bg-surface-container-low border border-outline-variant/10 hover:border-primary/30 transition-all duration-500 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 blur-3xl rounded-full"></div>
+          <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-8 group-hover:bg-primary/20 group-hover:rotate-6 transition-all duration-500">
+            <span class="material-symbols-outlined text-primary text-3xl">psychology</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">Personalized Quizzes</h3>
+          <p class="text-on-surface-variant leading-relaxed mb-8">Adaptive testing that identifies your weak spots and crafts dynamic challenges to bridge the gap.</p>
+          <div class="flex items-center gap-2 text-primary font-bold text-sm group-hover:translate-x-2 transition-transform cursor-pointer">
+            Learn more <span class="material-symbols-outlined">arrow_forward</span>
+          </div>
+        </div>
+        <!-- Feature 3 -->
+        <div class="group p-10 rounded-3xl bg-surface-container-low border border-outline-variant/10 hover:border-secondary/30 transition-all duration-500 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full"></div>
+          <div class="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center mb-8 group-hover:bg-secondary/20 group-hover:rotate-6 transition-all duration-500">
+            <span class="material-symbols-outlined text-secondary text-3xl">chat_bubble</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">24/7 AI Tutor Chat</h3>
+          <p class="text-on-surface-variant leading-relaxed mb-8">Expert level guidance available at 3 AM. No question is too complex for our unified knowledge engine.</p>
+          <div class="flex items-center gap-2 text-secondary font-bold text-sm group-hover:translate-x-2 transition-transform cursor-pointer">
+            Learn more <span class="material-symbols-outlined">arrow_forward</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Asymmetric Showcase -->
+  <section class="py-32 bg-surface-container-lowest/50 relative" id="how-it-works">
+    <div class="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-12 gap-16 items-center">
+      <div class="md:col-span-7 relative">
+        <div class="relative rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.6)] group border border-white/10">
+          <img alt="Dashboard Interface" class="w-full h-auto transform group-hover:scale-105 transition-transform duration-700 object-cover" src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent opacity-40"></div>
+        </div>
+        <!-- Floating Glass Card -->
+        <div class="absolute -bottom-10 -right-10 hidden lg:block p-8 rounded-3xl bg-surface-container-high/60 glass-morphism border border-white/10 max-w-xs shadow-2xl">
+          <div class="flex items-center gap-4 mb-5">
+            <div class="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shadow-lg shadow-secondary/20">
+              <span class="material-symbols-outlined text-surface font-bold text-2xl">trending_up</span>
+            </div>
+            <div>
+              <div class="text-xs font-label uppercase tracking-widest text-on-surface-variant mb-1">Retention Rate</div>
+              <div class="text-2xl font-black text-secondary">+240%</div>
+            </div>
+          </div>
+          <p class="text-sm text-on-surface-variant leading-relaxed italic opacity-90">"Since using Zero AI, my study sessions are half as long but twice as effective."</p>
+        </div>
+      </div>
+      <div class="md:col-span-5">
+        <div class="text-secondary font-black text-xs uppercase tracking-[0.3em] mb-4">The Performance Edge</div>
+        <h3 class="text-4xl font-black mb-10 leading-tight">Master the <br/>Impossible</h3>
+        <ul class="space-y-10">
+          <li class="flex gap-6">
+            <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-secondary text-lg font-bold">check</span>
+            </div>
+            <div>
+              <h4 class="font-bold mb-2">Instant Cognitive Mapping</h4>
+              <p class="text-on-surface-variant text-sm leading-relaxed">Visualize your knowledge gaps in a 3D neural map designed by cognitive scientists.</p>
+            </div>
+          </li>
+          <li class="flex gap-6">
+            <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-secondary text-lg font-bold">check</span>
+            </div>
+            <div>
+              <h4 class="font-bold mb-2">Deep Work Integration</h4>
+              <p class="text-on-surface-variant text-sm leading-relaxed">Flow-state triggers that sync with your biology for peak performance learning.</p>
+            </div>
+          </li>
+          <li class="flex gap-6">
+            <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-secondary text-lg font-bold">check</span>
+            </div>
+            <div>
+              <h4 class="font-bold mb-2">Multi-Model Synthesis</h4>
+              <p class="text-on-surface-variant text-sm leading-relaxed">Leveraging GPT-4, Claude, and specialized academic models for unbiased data.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <!-- FAQ Section -->
+  <section class="py-32 px-8" id="faq">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-20">
+        <h2 class="text-5xl font-black mb-6">Frequently Asked <span class="text-secondary">Questions</span></h2>
+        <p class="text-on-surface-variant">Everything you need to know about the platform.</p>
+      </div>
+      <div class="space-y-6">
+        <details class="group p-8 rounded-3xl bg-surface-container-low border border-outline-variant/10 cursor-pointer transition-all hover:bg-surface-container-high">
+          <summary class="flex justify-between items-center font-bold text-xl list-none">
+            How does Zero AI Learner work?
+            <span class="material-symbols-outlined group-open:rotate-180 transition-transform text-secondary">expand_more</span>
+          </summary>
+          <p class="mt-6 text-on-surface-variant leading-relaxed opacity-80">Zero AI Learner uses a proprietary neural compression engine to analyze study materials and generate hyper-personalized learning paths based on your unique cognitive profile.</p>
+        </details>
+        <details class="group p-8 rounded-3xl bg-surface-container-low border border-outline-variant/10 cursor-pointer transition-all hover:bg-surface-container-high">
+          <summary class="flex justify-between items-center font-bold text-xl list-none">
+            Is it suitable for professional certification?
+            <span class="material-symbols-outlined group-open:rotate-180 transition-transform text-secondary">expand_more</span>
+          </summary>
+          <p class="mt-6 text-on-surface-variant leading-relaxed opacity-80">Absolutely. We have specialized modules for CFA, MCAT, LSAT, and dozens of high-stakes technical certifications with curated high-authority training data.</p>
+        </details>
+        <details class="group p-8 rounded-3xl bg-surface-container-low border border-outline-variant/10 cursor-pointer transition-all hover:bg-surface-container-high">
+          <summary class="flex justify-between items-center font-bold text-xl list-none">
+            Can I upload my own private documents?
+            <span class="material-symbols-outlined group-open:rotate-180 transition-transform text-secondary">expand_more</span>
+          </summary>
+          <p class="mt-6 text-on-surface-variant leading-relaxed opacity-80">Yes. All uploaded documents are encrypted and processed locally within your isolated instance. We prioritize AI Ethics and data sovereignty.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="py-32 px-8 bg-surface-container-lowest/30" id="pricing">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-20">
+        <h2 class="text-5xl font-black mb-6">Choose Your <span class="text-primary">Plan</span></h2>
+        <p class="text-on-surface-variant">Experience the full power of Zero Studio with our premium features.</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Starter -->
+        <div class="bg-surface-container-low/50 glass-morphism rounded-[2.5rem] p-10 border border-outline-variant/10 flex flex-col hover:border-primary/30 transition-all duration-500">
+          <div class="flex items-center gap-2 mb-4">
+            <h3 class="text-2xl font-black">Starter</h3>
+            <span class="bg-primary text-[10px] font-bold px-2 py-0.5 rounded text-on-primary uppercase tracking-wider">Free</span>
+          </div>
+          <p class="text-on-surface-variant text-sm mb-8">You're just starting out on your comms journey</p>
+          <div class="mb-8">
+            <span class="text-5xl font-black">$0.00</span>
+            <span class="text-on-surface-variant text-xs ml-2">One-time payment</span>
+          </div>
+          <button onclick="window.parent.postMessage('open-pricing', '*')" class="w-full py-4 rounded-2xl border border-outline-variant/20 font-bold hover:bg-white/5 transition-all mb-10">Try Now</button>
+          <ul class="space-y-4 text-sm">
+            <li class="flex items-center gap-3 opacity-50"><span class="material-symbols-outlined text-primary">close</span> view premium projects</li>
+            <li class="flex items-center gap-3 opacity-50"><span class="material-symbols-outlined text-primary">close</span> Unlimited use of AI</li>
+            <li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">check</span> 20 Use of AI / day</li>
+            <li class="flex items-center gap-3 opacity-50"><span class="material-symbols-outlined text-primary">close</span> Premium support</li>
+          </ul>
+        </div>
+
+        <!-- Core -->
+        <div class="bg-primary-container/10 glass-morphism rounded-[2.5rem] p-10 border border-primary-container/30 flex flex-col scale-105 shadow-2xl shadow-primary-container/20 relative z-10">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">Most Popular</div>
+          <div class="mb-4">
+            <h3 class="text-2xl font-black">Core</h3>
+          </div>
+          <p class="text-on-surface-variant text-sm mb-8">Already familiar with the process</p>
+          <div class="mb-8">
+            <span class="text-5xl font-black">$4.99</span>
+            <span class="text-on-surface-variant text-sm ml-1">/month</span>
+          </div>
+          <button onclick="window.parent.postMessage('open-pricing', '*')" class="w-full py-4 rounded-2xl bg-primary text-on-primary font-black hover:scale-[1.02] transition-all mb-10 shadow-lg shadow-primary/20">Get Started</button>
+          <ul class="space-y-4 text-sm font-medium">
+            <li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">check</span> view 25 premium projects / day</li>
+            <li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">check</span> Unlimited use of AI (Pro)</li>
+            <li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">check</span> Premium support</li>
+          </ul>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="bg-surface-container-low/50 glass-morphism rounded-[2.5rem] p-10 border border-outline-variant/10 flex flex-col hover:border-primary/30 transition-all duration-500">
+          <div class="mb-4">
+            <h3 class="text-2xl font-black">Enterprise</h3>
+          </div>
+          <p class="text-on-surface-variant text-sm mb-8">Expert User</p>
+          <div class="mb-8">
+            <span class="text-5xl font-black">$9.99</span>
+            <span class="text-on-surface-variant text-sm ml-1">/month</span>
+          </div>
+          <button onclick="window.parent.postMessage('open-pricing', '*')" class="w-full py-4 rounded-2xl border border-outline-variant/20 font-bold hover:bg-white/5 transition-all mb-10">Contact Us</button>
+          <ul class="space-y-4 text-sm">
+            <li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">check</span> view premium projects (Unlimited)</li>
+            <li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">check</span> Unlimited use of AI (Ultra)</li>
+            <li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">check</span> Open Source Support</li>
+            <li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">check</span> Premium support</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- CTA Section -->
+  <section class="py-32 px-8">
+    <div class="max-w-7xl mx-auto rounded-[4rem] bg-gradient-to-br from-primary-container to-secondary-container p-20 text-center relative overflow-hidden shadow-2xl shadow-primary-container/20">
+      <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+      <div class="relative z-10">
+        <h2 class="text-6xl md:text-8xl font-black text-white tracking-tighter mb-10 leading-tight">Ready to evolve <br/>your knowledge?</h2>
+        <p class="text-white/80 text-2xl max-w-2xl mx-auto mb-16 leading-relaxed">Join the elite rank of learners who are leveraging the AI revolution to stay ahead. Start your trial today.</p>
+        <button class="px-14 py-6 rounded-full bg-white text-primary-container font-black text-2xl hover:scale-105 transition-all shadow-2xl active:scale-95">
+          Start Your Evolution
+        </button>
+      </div>
+      <!-- Decorative Elements -->
+      <div class="absolute -top-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-10 -right-10 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+    </div>
+  </section>
+  <!-- Footer -->
+  <footer class="bg-[#131313] dark:bg-[#131313] w-full py-12 px-8 pt-32 border-t border-outline-variant/10 bg-gradient-to-b from-[#131313] to-[#0a0a0a]">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-16 mb-24">
+      <div class="max-w-xs">
+        <div class="flex items-center gap-2 mb-8 group">
+          <div class="w-6 h-6 rounded bg-gradient-to-br from-[#4f46e5] to-[#00b954] flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-xs font-bold">bolt</span>
+          </div>
+          <div class="text-xl font-black text-white logo-glow font-black tracking-tight">Zero AI Learner</div>
+        </div>
+        <p class="text-slate-500 font-['Inter'] text-sm leading-relaxed mb-10">Redefining human potential through synthetic intelligence. The world's first truly adaptive learning system.</p>
+        <div class="flex gap-4">
+          <a class="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-all" href="#"><span class="material-symbols-outlined text-xl">public</span></a>
+          <a class="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-all" href="#"><span class="material-symbols-outlined text-xl">terminal</span></a>
+          <a class="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-all" href="#"><span class="material-symbols-outlined text-xl">campaign</span></a>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-16 md:gap-32">
+        <div>
+          <div class="text-white font-['Inter'] text-[10px] tracking-[0.3em] uppercase mb-8 font-black">Product</div>
+          <ul class="space-y-5">
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">Features</a></li>
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">Pricing</a></li>
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">API Access</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-white font-['Inter'] text-[10px] tracking-[0.3em] uppercase mb-8 font-black">Company</div>
+          <ul class="space-y-5">
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">About Us</a></li>
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">AI Ethics</a></li>
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">Careers</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-white font-['Inter'] text-[10px] tracking-[0.3em] uppercase mb-8 font-black">Legal</div>
+          <ul class="space-y-5">
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">Privacy Policy</a></li>
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">Terms of Service</a></li>
+            <li><a class="text-slate-500 hover:text-[#4ae176] transition-colors font-['Inter'] text-xs font-bold uppercase tracking-wider" href="#">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto border-t border-outline-variant/10 pt-16 flex flex-col md:flex-row justify-between items-center gap-8">
+      <div class="text-slate-600 font-['Inter'] text-[10px] tracking-[0.2em] uppercase">© 2024 Zero AI Learner. The Neon Scholar Initiative.</div>
+      <div class="flex items-center gap-3 px-4 py-2 rounded-full bg-surface-container-low border border-white/5">
+        <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+    </div>
+  </footer>
+
+  <script>
+    function runDemoAi() {
+      const topic = document.getElementById('demo-topic').value.trim() || 'AI Foundations';
+      document.getElementById('output-title').innerText = topic;
+      document.getElementById('output-body').innerText = `Zero AI Learner has analyzed "${topic}". Our cognitive engine compressed 45+ academic sources into structured mental models. Key concepts include foundational principles, real-world algorithmic applications, and optimization heuristics.`;
+      
+      const output = document.getElementById('demo-output');
+      output.classList.add('neon-glow');
+      setTimeout(() => output.classList.remove('neon-glow'), 1500);
+    }
+  </script>
+</body>
+</html>

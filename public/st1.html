@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#00465d",
+              "tertiary-fixed-dim": "#6cc3eb",
+              "surface-container": "#0f1930",
+              "surface-bright": "#1f2b49",
+              "error-dim": "#d7383b",
+              "tertiary-dim": "#6cc3eb",
+              "error-container": "#9f0519",
+              "on-tertiary": "#004f69",
+              "inverse-on-surface": "#4d556b",
+              "inverse-primary": "#0057d2",
+              "surface-dim": "#060e20",
+              "surface-container-lowest": "#000000",
+              "on-primary": "#002a6e",
+              "on-primary-fixed-variant": "#002869",
+              "tertiary-fixed": "#7bd1fa",
+              "primary": "#8cacff",
+              "secondary": "#d8e3fb",
+              "secondary-fixed-dim": "#cad5ed",
+              "primary-fixed-dim": "#5f8fff",
+              "on-surface-variant": "#a3aac4",
+              "tertiary-container": "#7bd1fa",
+              "on-error": "#490006",
+              "background": "#060e20",
+              "on-primary-container": "#001f56",
+              "on-secondary": "#475266",
+              "secondary-container": "#3c475a",
+              "on-background": "#dee5ff",
+              "inverse-surface": "#faf8ff",
+              "secondary-dim": "#cad5ed",
+              "primary-dim": "#286def",
+              "surface": "#060e20",
+              "on-tertiary-fixed-variant": "#004f69",
+              "surface-tint": "#8cacff",
+              "on-primary-fixed": "#000000",
+              "surface-container-high": "#141f38",
+              "on-surface": "#dee5ff",
+              "primary-container": "#769dff",
+              "surface-variant": "#192540",
+              "secondary-fixed": "#d8e3fb",
+              "on-secondary-fixed": "#354053",
+              "error": "#ff716c",
+              "surface-container-highest": "#192540",
+              "on-secondary-fixed-variant": "#515c70",
+              "tertiary": "#9bddff",
+              "outline": "#6d758c",
+              "surface-container-low": "#091328",
+              "primary-fixed": "#769dff",
+              "on-tertiary-fixed": "#003041",
+              "outline-variant": "#40485d",
+              "on-error-container": "#ffa8a3",
+              "on-secondary-container": "#c5d1e8"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      html {
+        scroll-behavior: smooth;
+      }
+      .glass-panel {
+        background: rgba(20, 31, 56, 0.6);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+      }
+      .ghost-border-top {
+        border-top: 1px solid rgba(64, 72, 93, 0.2);
+        border-left: 1px solid rgba(64, 72, 93, 0.1);
+      }
+      .liquid-gradient {
+        background: linear-gradient(135deg, #8cacff 0%, #769dff 100%);
+      }
+      .text-glow {
+        text-shadow: 0 0 20px rgba(140, 172, 255, 0.3);
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .code-wrap {
+        mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+      }
+      
+      /* Parallax & Animation Base Styles */
+      .parallax-bg {
+        will-change: transform;
+        transition: transform 0.1s linear;
+      }
+      .parallax-item {
+        will-change: transform;
+        transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+      }
+      .tilt-card {
+        transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      
+      @media (prefers-reduced-motion: reduce) {
+        .parallax-bg, .parallax-item, .tilt-card {
+          transform: none !important;
+          transition: none !important;
+        }
+      }
+      
+      /* Automatic Responsive System */
+      html { font-size: 16px; }
+      @media screen and (max-width: 1280px) { html { font-size: 15px; } }
+      @media screen and (max-width: 1024px) { html { font-size: 14px; } }
+      @media screen and (max-width: 768px) { html { font-size: clamp(12px, 2vw + 6px, 14px); } }
+      @media screen and (max-width: 480px) { html { font-size: clamp(10px, 3.5vw, 13px); } }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-[#141f38]/60 backdrop-blur-3xl border-b border-[#40485d]/20 shadow-[0_8px_32px_0_rgba(6,14,32,0.4)] flex justify-between items-center px-8 py-4">
+<div class="text-2xl font-bold tracking-tighter text-[#8cacff] font-headline">DevHub.AI</div>
+<div id="nav-links" class="hidden md:flex gap-8 items-center font-['Plus_Jakarta_Sans'] tracking-tight text-sm font-medium">
+<a class="nav-link text-[#8cacff] border-b-2 border-[#8cacff] pb-1" href="#ai-suite">AI</a>
+<a class="nav-link text-[#94a3b8] hover:text-[#8cacff] transition-colors" href="#web-projects">Web</a>
+<a class="nav-link text-[#94a3b8] hover:text-[#8cacff] transition-colors" href="#mobile-apps">Apps</a>
+<a class="nav-link text-[#94a3b8] hover:text-[#8cacff] transition-colors" href="#animations">Animation</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#8cacff] hover:bg-[#1f2b49]/50 rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<button class="p-2 text-[#8cacff] hover:bg-[#1f2b49]/50 rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined">code</span>
+</button>
+</div>
+</nav>
+<main class="pt-24 relative">
+<!-- Background Elements with Parallax Layering -->
+<div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+<!-- Drift Layer 1: Slower -->
+<div class="parallax-bg absolute top-[-10%] left-[-10%] w-[120%] h-[120%] opacity-20" data-speed="0.05">
+<div class="absolute top-[20%] left-[15%] w-96 h-96 bg-primary rounded-full blur-[160px] animate-pulse"></div>
+<div class="absolute bottom-[30%] right-[10%] w-[500px] h-[500px] bg-tertiary rounded-full blur-[200px] opacity-40"></div>
+</div>
+<!-- Drift Layer 2: Medium -->
+<div class="parallax-bg absolute inset-0 opacity-10" data-speed="0.12">
+<svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="100" id="grid" patternunits="userSpaceOnUse" width="100">
+<path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(140, 172, 255, 0.3)" stroke-width="0.5"></path>
+</pattern>
+</defs>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+</svg>
+</div>
+</div>
+<!-- Hero Section -->
+<section class="relative min-h-[819px] flex items-center px-8 overflow-hidden">
+<div class="absolute inset-0 z-0 overflow-hidden">
+<img class="parallax-bg w-full h-full object-cover opacity-45 scale-110" data-alt="Abstract cinematic visualization of digital data flows and neural networks in deep indigo and neon blue tones" data-speed="0.15" src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1600&q=80"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+</div>
+<div class="relative z-10 max-w-5xl mx-auto md:mx-0 md:ml-20">
+<div class="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 text-primary font-label text-xs font-semibold mb-6 tracking-wider border border-primary/20">
+                    PORTFOLIO 2024
+                </div>
+<h1 class="font-headline text-5xl md:text-8xl font-extrabold tracking-tighter leading-[0.9] mb-8 text-glow">
+                    Engineering <br/><span class="text-primary">Intelligence.</span>
+</h1>
+<p class="font-body text-lg md:text-xl text-on-surface-variant max-w-xl mb-10 leading-relaxed">
+                    A collection of high-performance interfaces and algorithmic solutions focused on the intersection of AI and human experience.
+                </p>
+<div class="flex flex-wrap gap-4">
+<button class="liquid-gradient text-on-primary-container px-8 py-4 rounded-full font-headline font-bold transition-transform active:scale-95">
+                        EXPLORE PROJECTS
+                    </button>
+<button class="bg-surface-container-highest text-primary px-8 py-4 rounded-full font-headline font-medium transition-all hover:bg-surface-bright">
+                        VIEW GITHUB
+                    </button>
+</div>
+</div>
+</section>
+<!-- Featured AI Suite: Bento Grid -->
+<section id="ai-suite" class="px-8 py-24 max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
+<div>
+<h2 class="font-headline text-4xl font-bold tracking-tight mb-4">Featured: AI Suite</h2>
+<p class="text-on-surface-variant max-w-md">Next-generation analysis tools leveraging LLMs for predictive code modeling and automated UI generation.</p>
+</div>
+<div class="text-xs font-label uppercase tracking-widest text-primary/60">SCROLL TO DISCOVER — 01</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Main Featured Card -->
+<div class="tilt-card md:col-span-8 group relative overflow-hidden rounded-xl glass-panel ghost-border-top p-8 flex flex-col justify-between min-h-[500px]" data-parallax-offset="30">
+<div class="relative z-10">
+<div class="flex gap-2 mb-6">
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary font-label text-[10px] font-bold">MACHINE LEARNING</span>
+<span class="px-3 py-1 rounded-full bg-tertiary/10 text-tertiary font-label text-[10px] font-bold">NEXT.JS</span>
+</div>
+<h3 class="font-headline text-3xl font-bold mb-4">Zero Studio AI Dashboard</h3>
+<div class="bg-surface-container-lowest/50 rounded-lg p-4 font-mono text-xs text-secondary/70 mb-8 border border-outline-variant/20">
+<span class="text-primary">const</span> toolkit = (state) =&gt; { <br/>
+                              <span class="text-tertiary">return</span> state.tools.map(tool =&gt; <br/>
+                                AI.<span class="text-primary">enhance</span>(tool.capability)<br/>
+                              );<br/>
+                            };
+                        </div>
+</div>
+<img class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 group-hover:opacity-50 transition-opacity animate-pulse-slow" data-alt="Zero Studio AI Toolkit dashboard showing various AI assistants for writing and analysis" src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80"/>
+<div class="relative z-10 flex justify-between items-center mt-auto">
+<p class="text-sm text-on-surface-variant max-w-xs">Comprehensive AI tool suite for professional writing, recruitment analysis, and content generation.</p>
+<button class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">arrow_outward</span>
+</button>
+</div>
+</div>
+<!-- Side Grid Cards -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<div class="tilt-card flex-1 rounded-xl glass-panel ghost-border-top p-6 group overflow-hidden" data-parallax-offset="-20">
+<img class="w-full h-40 object-cover rounded-xl mb-6 grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Zero AI branding and interface preview" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80"/>
+<h4 class="font-headline font-bold text-lg mb-2">Professional Suite</h4>
+<p class="text-xs text-on-surface-variant mb-4">High-impact landing pages for AI-driven professional services.</p>
+<div class="flex justify-between items-center">
+<span class="text-primary font-label text-[10px] font-black uppercase">VIEW PROJECT</span>
+<span class="material-symbols-outlined text-primary text-sm">code</span>
+</div>
+</div>
+<div class="tilt-card flex-1 rounded-xl glass-panel ghost-border-top p-6 group overflow-hidden" data-parallax-offset="20">
+<img class="w-full h-40 object-cover rounded-xl mb-6 grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Pricing and plan selection interface for AI services" src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80"/>
+<h4 class="font-headline font-bold text-lg mb-2">Service Models</h4>
+<p class="text-xs text-on-surface-variant mb-4">Dynamic pricing architecture and subscription management systems.</p>
+<div class="flex justify-between items-center">
+<span class="text-primary font-label text-[10px] font-black uppercase">VIEW PROJECT</span>
+<span class="material-symbols-outlined text-primary text-sm">terminal</span>
+</div>
+</div>
+</div>
+</div>
+<div class="tilt-card mt-6 rounded-xl glass-panel ghost-border-top p-6 group overflow-hidden" data-parallax-offset="40">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div class="relative rounded-lg overflow-hidden h-64">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" data-alt="Zero Studio AI Mobile Hero section" src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1000&q=80"/>
+</div>
+<div>
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary font-label text-[10px] font-bold mb-4 inline-block">FULL STACK</span>
+<h4 class="font-headline font-bold text-2xl mb-4">Integrated Ecosystem</h4>
+<p class="text-sm text-on-surface-variant mb-6 leading-relaxed">Building cohesive digital environments where brand identity meets high-performance engineering. Focused on seamless transitions between desktop and mobile-first experiences.</p>
+<div class="flex gap-4">
+<button class="bg-primary/10 text-primary px-6 py-2 rounded-full font-headline text-xs font-bold hover:bg-primary/20 transition-all">PROJECT DETAILS</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Product Design Gallery: Mobile Spotlight -->
+<section id="mobile-apps" class="bg-surface-container-low py-24 relative overflow-hidden">
+<div class="max-w-7xl mx-auto px-8 relative z-10">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
+<div>
+<h2 class="font-headline text-4xl font-bold tracking-tight mb-4">Mobile Design: Chronos</h2>
+<p class="text-on-surface-variant max-w-lg">A study in temporal visualization and organic motion. Reimagining the utility of a clock through fluid glassmorphism.</p>
+</div>
+<div class="flex gap-4 mb-4">
+<button id="chronos-prev" class="w-12 h-12 rounded-full glass-panel ghost-border-top flex items-center justify-center text-primary hover:bg-primary/10 transition-all active:scale-95">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button id="chronos-next" class="w-12 h-12 rounded-full glass-panel ghost-border-top flex items-center justify-center text-primary hover:bg-primary/10 transition-all active:scale-95">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Horizontal Scroll/Gallery Container -->
+<div id="chronos-gallery" class="flex gap-8 overflow-x-auto pb-12 no-scrollbar snap-x scroll-smooth">
+<div class="tilt-card min-w-[280px] md:min-w-[320px] snap-center" data-parallax-offset="20">
+<div class="rounded-[2.5rem] bg-surface-container-high p-4 shadow-xl border border-outline-variant/10 mb-6 overflow-hidden">
+<img class="rounded-[2rem] w-full h-auto object-cover aspect-[9/20]" data-alt="Stopwatch interface showing lap times and circular progress" src="https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=400&q=80"/>
+</div>
+<p class="font-label text-[10px] text-primary font-bold uppercase tracking-widest mb-1">INTERFACE 01</p>
+<p class="font-headline text-sm font-semibold">Temporal Precision</p>
+</div>
+<div class="tilt-card min-w-[280px] md:min-w-[320px] snap-center" data-parallax-offset="-10">
+<div class="rounded-[2.5rem] bg-surface-container-high p-4 shadow-xl border border-outline-variant/10 mb-6 overflow-hidden">
+<img class="rounded-[2rem] w-full h-auto object-cover aspect-[9/20]" data-alt="Bedtime schedule configuration with sleep and wake times" src="https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=400&q=80"/>
+</div>
+<p class="font-label text-[10px] text-primary font-bold uppercase tracking-widest mb-1">INTERFACE 02</p>
+<p class="font-headline text-sm font-semibold">Circadian Rhythm</p>
+</div>
+<div class="tilt-card min-w-[280px] md:min-w-[320px] snap-center" data-parallax-offset="30">
+<div class="rounded-[2.5rem] bg-surface-container-high p-4 shadow-xl border border-outline-variant/10 mb-6 overflow-hidden">
+<img class="rounded-[2rem] w-full h-auto object-cover aspect-[9/20]" data-alt="Alarm management screen with list of active alarms" src="https://images.unsplash.com/photo-1495364141860-b0d03eccd065?auto=format&fit=crop&w=400&q=80"/>
+</div>
+<p class="font-label text-[10px] text-primary font-bold uppercase tracking-widest mb-1">INTERFACE 03</p>
+<p class="font-headline text-sm font-semibold">Routine Control</p>
+</div>
+<div class="tilt-card min-w-[280px] md:min-w-[320px] snap-center" data-parallax-offset="15">
+<div class="rounded-[2.5rem] bg-surface-container-high p-4 shadow-xl border border-outline-variant/10 mb-6 overflow-hidden">
+<img class="rounded-[2rem] w-full h-auto object-cover aspect-[9/20]" data-alt="Timer interface with selection dials and start button" src="https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?auto=format&fit=crop&w=400&q=80"/>
+</div>
+<p class="font-label text-[10px] text-primary font-bold uppercase tracking-widest mb-1">INTERFACE 04</p>
+<p class="font-headline text-sm font-semibold">Duration Configuration</p>
+</div>
+<div class="tilt-card min-w-[280px] md:min-w-[320px] snap-center" data-parallax-offset="-20">
+<div class="rounded-[2.5rem] bg-surface-container-high p-4 shadow-xl border border-outline-variant/10 mb-6 overflow-hidden">
+<img class="rounded-[2rem] w-full h-auto object-cover aspect-[9/20]" data-alt="Edit alarm modal with detailed setting options" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=400&q=80"/>
+</div>
+<p class="font-label text-[10px] text-primary font-bold uppercase tracking-widest mb-1">INTERFACE 05</p>
+<p class="font-headline text-sm font-semibold">Granular Adjustment</p>
+</div>
+</div>
+</div>
+<!-- Background Decoration for Chronos -->
+<div class="parallax-bg absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px]" data-speed="0.15"></div>
+</section>
+<!-- Web Projects Section (Placeholder) -->
+<section id="web-projects" class="px-8 py-24 max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
+<div>
+<h2 class="font-headline text-4xl font-bold tracking-tight mb-4">Web Development</h2>
+<p class="text-on-surface-variant max-w-md">High-performance web applications built with modern frameworks and optimized for scale.</p>
+</div>
+<div class="text-xs font-label uppercase tracking-widest text-primary/60">PROJECTS — 03</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="tilt-card rounded-xl glass-panel ghost-border-top p-8 min-h-[300px] flex flex-col justify-center items-center border border-dashed border-[#40485d]/40">
+<span class="material-symbols-outlined text-4xl text-primary/40 mb-4">add_photo_alternate</span>
+<p class="text-on-surface-variant font-medium">Web Screenshots Coming Soon</p>
+</div>
+<div class="tilt-card rounded-xl glass-panel ghost-border-top p-8 min-h-[300px] flex flex-col justify-center items-center border border-dashed border-[#40485d]/40">
+<span class="material-symbols-outlined text-4xl text-primary/40 mb-4">add_photo_alternate</span>
+<p class="text-on-surface-variant font-medium">Web Screenshots Coming Soon</p>
+</div>
+</div>
+</section>
+
+<!-- Animations Section (Placeholder) -->
+<section id="animations" class="bg-surface-container-low py-24 relative overflow-hidden">
+<div class="max-w-7xl mx-auto px-8 relative z-10">
+<div class="mb-16">
+<h2 class="font-headline text-4xl font-bold tracking-tight mb-4">Motion & Animation</h2>
+<p class="text-on-surface-variant max-w-lg">Fluid motion studies and cinematic animations that bring digital interfaces to life.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="tilt-card aspect-video rounded-xl glass-panel ghost-border-top flex flex-col justify-center items-center border border-dashed border-[#40485d]/40">
+<span class="material-symbols-outlined text-4xl text-primary/40 mb-4">movie</span>
+<p class="text-on-surface-variant text-sm">Animation Preview Soon</p>
+</div>
+<div class="tilt-card aspect-video rounded-xl glass-panel ghost-border-top flex flex-col justify-center items-center border border-dashed border-[#40485d]/40">
+<span class="material-symbols-outlined text-4xl text-primary/40 mb-4">movie</span>
+<p class="text-on-surface-variant text-sm">Animation Preview Soon</p>
+</div>
+<div class="tilt-card aspect-video rounded-xl glass-panel ghost-border-top flex flex-col justify-center items-center border border-dashed border-[#40485d]/40">
+<span class="material-symbols-outlined text-4xl text-primary/40 mb-4">movie</span>
+<p class="text-on-surface-variant text-sm">Animation Preview Soon</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Technical Excellence Section -->
+<section class="px-8 py-24 max-w-7xl mx-auto overflow-hidden">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div class="parallax-item" data-speed="0.05">
+<h2 class="font-headline text-4xl font-bold tracking-tight mb-8">Architectural Logic</h2>
+<div class="space-y-8">
+<div class="flex gap-6">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary">data_object</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-lg mb-2">Optimized Structures</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">Implementing data normalization patterns that reduce component re-renders by 40% in high-frequency update environments.</p>
+</div>
+</div>
+<div class="flex gap-6">
+<div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary">bolt</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-lg mb-2">Performance First</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">Prioritizing Web Vitals through aggressive tree-shaking and custom middleware for edge-case resolution.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="parallax-item rounded-2xl bg-[#0f1930] p-6 border border-[#40485d]/20 shadow-2xl relative z-10 overflow-hidden max-h-[500px]" data-speed="0.15">
+<div class="flex gap-2 mb-4">
+<div class="w-3 h-3 rounded-full bg-error-dim"></div>
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<div class="w-3 h-3 rounded-full bg-tertiary"></div>
+</div>
+<div class="code-wrap overflow-y-auto max-h-[400px] no-scrollbar">
+<pre class="font-mono text-xs leading-relaxed text-secondary-dim/70"><code>import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+interface PerformanceState {
+  metrics: Record<string, number>;
+  activeThreads: number;
+  loading: boolean;
+}
+
+const initialState: PerformanceState = {
+  metrics: {},
+  activeThreads: 0,
+  loading: false
+};
+
+const performanceSlice = createSlice({
+  name: 'performance',
+  initialState,
+  reducers: {
+    logMetric(state, action: PayloadAction<{ key: string; value: number }>) {
+      const { key, value } = action.payload;
+      state.metrics[key] = value;
+    },
+    incrementThreads(state) {
+      state.activeThreads += 1;
+    },
+    setLoading(state, action: PayloadAction&lt;boolean&gt;) {
+      state.loading = action.payload;
+    }
+  }
+});
+
+export const { logMetric, incrementThreads, setLoading } = performanceSlice.actions;
+export default performanceSlice.reducer;</code></pre>
+</div>
+</div>
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-[80px]"></div>
+<div class="absolute -bottom-10 -left-10 w-40 h-40 bg-tertiary/10 rounded-full blur-[80px]"></div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-8 mt-auto bg-[#060e20] tonal-shift bg-[#091328]">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto border-t border-[#40485d]/10 pt-12">
+<div class="mb-8 md:mb-0">
+<div class="text-lg font-black text-[#769dff] font-headline mb-2 uppercase tracking-tighter">Zero Studio</div>
+<p class="font-['Manrope'] text-xs uppercase tracking-widest text-[#40485d]">© 2024 Ethereal Engine. Built for the future.</p>
+</div>
+<div class="flex gap-8 font-['Manrope'] text-xs uppercase tracking-widest">
+<a class="text-[#40485d] hover:text-[#9bddff] transition-colors opacity-80 hover:opacity-100" href="#">GitHub</a>
+<a class="text-[#40485d] hover:text-[#9bddff] transition-colors opacity-80 hover:opacity-100" href="#">LinkedIn</a>
+<a class="text-[#40485d] hover:text-[#9bddff] transition-colors opacity-80 hover:opacity-100" href="#">Instagram</a>
+</div>
+</div>
+</footer>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const parallaxBgs = document.querySelectorAll('.parallax-bg');
+            const parallaxItems = document.querySelectorAll('.parallax-item');
+            const tiltCards = document.querySelectorAll('.tilt-card');
+            
+            let lastScrollY = window.scrollY;
+            let ticking = false;
+
+            function updateParallax() {
+                const scrollY = window.scrollY;
+                const windowHeight = window.innerHeight;
+
+                // Handle Backgrounds & Text Parallax
+                parallaxBgs.forEach(bg => {
+                    const speed = parseFloat(bg.getAttribute('data-speed')) || 0.1;
+                    const yPos = -(scrollY * speed);
+                    bg.style.transform = `translate3d(0, ${yPos}px, 0)`;
+                });
+
+                parallaxItems.forEach(item => {
+                    const speed = parseFloat(item.getAttribute('data-speed')) || 0.1;
+                    const rect = item.getBoundingClientRect();
+                    const itemCenter = rect.top + rect.height / 2;
+                    const viewCenter = windowHeight / 2;
+                    const offset = (itemCenter - viewCenter) * speed;
+                    item.style.transform = `translate3d(0, ${offset}px, 0)`;
+                });
+
+                // Handle Card Viewport Offset (Vertical drift and subtle tilt)
+                tiltCards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    const offsetVal = parseFloat(card.getAttribute('data-parallax-offset')) || 20;
+                    
+                    if (rect.top < windowHeight && rect.bottom > 0) {
+                        const progress = 1 - (rect.top / windowHeight);
+                        const drift = (progress - 0.5) * offsetVal;
+                        const tilt = (progress - 0.5) * 2; // Subtle degree tilt
+                        card.style.transform = `translate3d(0, ${drift}px, 0) rotateX(${tilt}deg)`;
+                    }
+                });
+
+                ticking = false;
+            }
+
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        updateParallax();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, { passive: true });
+
+            // Initial call
+            updateParallax();
+
+            // Chronos Gallery Scroll Logic
+            const gallery = document.getElementById('chronos-gallery');
+            const prevBtn = document.getElementById('chronos-prev');
+            const nextBtn = document.getElementById('chronos-next');
+
+            if (gallery && prevBtn && nextBtn) {
+                const scrollAmount = 350; // Adjust based on card width
+                prevBtn.addEventListener('click', () => {
+                    gallery.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                });
+                nextBtn.addEventListener('click', () => {
+                    gallery.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                });
+            }
+
+            // Active Link Highlighting
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    navLinks.forEach(l => {
+                        l.classList.remove('text-[#8cacff]', 'border-b-2', 'border-[#8cacff]', 'pb-1');
+                        l.classList.add('text-[#94a3b8]');
+                    });
+                    link.classList.add('text-[#8cacff]', 'border-b-2', 'border-[#8cacff]', 'pb-1');
+                    link.classList.remove('text-[#94a3b8]');
+                });
+            });
+        });
+    </script>
+</body></html>
