@@ -610,7 +610,7 @@ export default function App() {
             </AnimatePresence>
           </main>
 
-          <ChatBot />
+          {view !== 'zero-studio' && <ChatBot />}
 
           {/* Liquid Ripple Overlay Container */}
           {ripple && (
