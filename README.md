@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Zero Studio — Professional Portfolio & AI Tool Suite
 
-# Run and deploy your AI Studio app
+Zero Studio is a high-performance web application and digital portfolio featuring integrated live project showcases, AI-powered document writers, CV analyzers, code generators, and learning engines.
 
-This contains everything you need to run your app locally.
+## 🚀 Key Features
 
-View your app in AI Studio: https://ai.studio/apps/34140f72-77f9-4a36-ab44-cbd00cf8ae5a
+- **Live Deployment Showcase**: Interactive iFrame previews and responsive view toggles for corporate enterprise sites and web apps.
+- **AI Resume & CV Builder**: Automated tools for job seekers and student resumes.
+- **AI Code Generator**: Real-time code generation for HTML, Java, Python, and advanced logic.
+- **AI Email & SOP Suite**: Fast email repliers, SOP generators, and university application checkers.
+- **Zero AI Learner Studio**: Interactive cognitive summaries and learning sandboxes.
 
-## Run Locally
+## 🛠️ Tech Stack
 
-**Prerequisites:**  Node.js
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling**: Tailwind CSS, Lucide Icons, Framer Motion
+- **Services**: Google Gemini AI API
 
+## 💻 Local Setup & Development
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/smartworldarafath/Zero-Website-.git
+   cd Zero-Website-
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
