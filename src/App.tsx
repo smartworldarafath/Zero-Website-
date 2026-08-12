@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, Moon, Sun, Sparkles, ArrowLeft } from 'lucide-react';
+import { Menu, Moon, Sun, Sparkles, ArrowLeft, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { Sidebar } from './components/Sidebar';
 import { HorizontalSlider } from './components/HorizontalSlider';
@@ -11,6 +11,7 @@ import { ZeroAiLearnerPage } from './components/ZeroAiLearnerPage';
 import { St1Page } from './components/St1Page';
 import { useTheme } from './components/ThemeProvider';
 import { ProjectsPage } from './components/ProjectsPage';
+import { AnimatedBackground } from './components/AnimatedBackground';
 
 // AI Tool Pages
 import { EmailWriter } from './pages/EmailWriter';
@@ -105,6 +106,7 @@ export default function App() {
 
       {!showIntro && (
         <>
+          <AnimatedBackground />
           <Sidebar 
             isOpen={isSidebarOpen} 
             onClose={() => setIsSidebarOpen(false)} 
