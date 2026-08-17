@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/api/pollinations/:match*", "destination": "https://text.pollinations.ai/:match*" },
+    { "source": "/proxy/arbian-enterprise/:match*", "destination": "https://arbian-enterprise.vercel.app/:match*" },
+    { "source": "/proxy/international-education/:match*", "destination": "https://international-education-consultancy.vercel.app/:match*" },
+    { "source": "/proxy/local-drive-official/:match*", "destination": "https://local-drive-official-web.netlify.app/:match*" },
+    { "source": "/proxy/local-drive/:match*", "destination": "https://local-drive.vercel.app/:match*" },
+    { "source": "/proxy/0zerostudioai/:match*", "destination": "https://0zerostudioai.netlify.app/:match*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

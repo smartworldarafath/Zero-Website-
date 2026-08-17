@@ -1,20 +1,28 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 
 export async function generateContent(prompt: string, systemInstruction?: string) {
   try {
-    // Instantiate inside the function to ensure it picks up the latest API key
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const apiKey = (typeof localStorage !== 'undefined' && localStorage.getItem('gemini_api_key')) || 
+                   (import.meta as any).env?.VITE_GEMINI_API_KEY || 
+                   (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : '') || '';
+
+    if (!apiKey) {
+      throw new Error('Gemini API Key is missing');
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: 'gemini-3.1-pro-preview',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         systemInstruction,
         temperature: 0.7,
+        tools: [{ googleSearch: {} }]
       },
     });
     return response.text || '';
   } catch (error: any) {
-    console.error('Error generating content:', error);
+    console.error('Error generating content with Gemini Google Search grounding:', error);
     throw new Error(error.message || 'Failed to generate content');
   }
 }

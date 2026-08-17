@@ -1,0 +1,7 @@
+/api/pollinations/*  https://text.pollinations.ai/:splat  200
+/proxy/arbian-enterprise/*  https://arbian-enterprise.vercel.app/:splat  200
+/proxy/international-education/*  https://international-education-consultancy.vercel.app/:splat  200
+/proxy/local-drive-official/*  https://local-drive-official-web.netlify.app/:splat  200
+/proxy/local-drive/*  https://local-drive.vercel.app/:splat  200
+/proxy/0zerostudioai/*  https://0zerostudioai.netlify.app/:splat  200
+/* /index.html 200

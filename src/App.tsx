@@ -86,9 +86,9 @@ export default function App() {
 
   const topRowItems = Array.from({ length: 6 }).map((_, i) => ({
     id: i + 1,
-    title: `${i + 1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Box`,
-    image: i === 0 ? '/1st box.jpg' : i === 1 ? '/2nd box.png' : i === 2 ? '/3rd box.png' : i === 3 ? '/4th box.png' : undefined,
-    onClick: (i === 0 || i === 1) ? () => setView('zero-studio') : (i === 2 || i === 3) ? () => setView('zero-ai-learner') : i === 4 ? () => setView('st1') : undefined,
+    title: i === 0 ? 'Empty Box' : i === 1 ? 'St1 Portfolio' : i === 2 ? 'Projects Showcase' : i === 3 ? 'Pricing & Plans' : i === 4 ? 'Zero AI Learner' : `${i + 1}th Box`,
+    image: i === 4 ? '/1st box.jpg' : i === 1 ? '/2nd box.png' : i === 2 ? '/3rd box.png' : i === 3 ? '/4th box.png' : undefined,
+    onClick: i === 0 ? undefined : i === 1 ? () => setView('st1') : i === 2 ? () => setView('projects') : i === 3 ? () => setView('pricing') : i === 4 ? () => setView('zero-ai-learner') : i === 5 ? () => setView('zero-studio') : undefined,
   }));
 
   const bottomRowItems = Array.from({ length: 6 }).map((_, i) => ({
@@ -576,7 +576,7 @@ export default function App() {
                   onProjectsClick={() => setView('projects')}
                 />
               ) : view === 'projects' ? (
-                <ProjectsPage key="projects" onBack={() => setView('zero-studio')} />
+                <ProjectsPage key="projects" onBack={() => setView('home')} />
               ) : view === 'zero-ai-learner' ? (
                 <ZeroAiLearnerPage
                   key="zero-ai-learner"

@@ -22,6 +22,19 @@ export default defineConfig(({mode}) => {
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
       proxy: {
+        '/api/pollinations': {
+          target: 'https://text.pollinations.ai',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/pollinations/, ''),
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+              proxyReq.removeHeader('Origin');
+              proxyReq.removeHeader('Referer');
+            });
+          }
+        },
         '/proxy/arbian-enterprise': {
           target: 'https://arbian-enterprise.vercel.app',
           changeOrigin: true,
