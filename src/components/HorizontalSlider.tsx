@@ -143,7 +143,7 @@ export function HorizontalSlider({ items, startIndex }: { items: BoxData[]; star
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <span className="text-2xl font-black text-gray-800 dark:text-white z-10 tracking-tight">{item.title}</span>
+                <span className="text-xl sm:text-2xl font-black font-headline text-gray-900 dark:text-white z-10 tracking-tight">{item.title}</span>
               )}
               <div className="absolute inset-0 bg-gradient-to-br from-[#8cacff]/10 to-[#769dff]/10 opacity-0 group-hover/box:opacity-100 transition-opacity duration-500" />
               <div className="absolute -bottom-2 -right-2 w-24 h-24 bg-[#8cacff]/20 rounded-full blur-3xl opacity-0 group-hover/box:opacity-100 transition-opacity duration-500" />
@@ -154,8 +154,8 @@ export function HorizontalSlider({ items, startIndex }: { items: BoxData[]; star
               whileHover={{ scale: 1.05, y: -5 }}
               className="rounded-2xl bg-white/60 dark:bg-[#141f38]/40 backdrop-blur-[40px] border border-white/60 dark:border-[#40485d]/20 shadow-[0_8px_32px_0_rgba(6,14,32,0.1)] dark:shadow-[0_8px_32px_0_rgba(6,14,32,0.4)] p-5 text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-[#1f2b49]/50 transition-all duration-300"
             >
-              <p className="text-sm text-gray-800 dark:text-white leading-tight font-semibold">
-                Discover Amazing<br />Features Here
+              <p className="text-xs sm:text-sm text-gray-800 dark:text-white leading-snug font-medium font-body">
+                Explore Digital Studio<br /><span className="text-[#8cacff] font-semibold">Features & Workflows</span>
               </p>
             </motion.div>
           </motion.div>

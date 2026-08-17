@@ -32,7 +32,7 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="w-full min-h-screen text-slate-900 dark:text-[#e8e8f0] py-6 px-4 md:px-12 font-syne relative isolate">
+    <div className="w-full min-h-screen text-slate-900 dark:text-[#e8e8f0] py-6 px-4 md:px-12 font-sans relative isolate">
       
       {/* Background Orbs replicating Zero Studio Code vibe */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none opacity-50 dark:opacity-100">
@@ -49,8 +49,8 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
             className="flex items-center gap-2 px-5 py-2.5 bg-white/80 dark:bg-[#0a0a0f]/80 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-full text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-all shadow-md dark:shadow-none hover:-translate-y-0.5 cursor-pointer"
             id="projects-back-btn"
           >
-            <ArrowLeft className="w-5 h-5 text-[#00ff88]" />
-            <span className="text-sm font-semibold tracking-wide font-spacemono uppercase">Back to Home</span>
+            <ArrowLeft className="w-4 h-4 text-[#00ff88]" />
+            <span className="text-xs font-bold tracking-wider font-label uppercase">Back to Home</span>
           </button>
         </div>
 
@@ -58,12 +58,12 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
         <div className="text-center sm:text-left mb-16">
           <div className="inline-flex items-center gap-2 mb-3">
             <span className="w-8 h-[2px] bg-[#00ff88]" />
-            <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#00ff88] font-spacemono">Live Deployment Showcase</span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-[#00ff88] font-mono">Live Deployment Showcase</span>
           </div>
-          <h1 className="text-5xl sm:text-7xl font-extrabold font-bebas tracking-wide text-slate-800 dark:text-white leading-none">
-            MY LIVE <span className="text-[#00ff88]">PROJECTS</span>
+          <h1 className="text-4xl sm:text-6xl font-black font-headline tracking-tight text-slate-900 dark:text-white leading-[1.1]">
+            Verified Enterprise <span className="bg-gradient-to-r from-[#00ff88] via-[#8cacff] to-[#9bddff] bg-clip-text text-transparent">Live Deployments</span>
           </h1>
-          <p className="text-slate-600 dark:text-[#8d8ea6] mt-4 max-w-xl text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-600 dark:text-gray-300 mt-4 max-w-xl text-sm sm:text-base leading-relaxed font-body">
             Explore live deployed applications and corporate portals. Toggle between high-res screenshots or interact directly with the live web applications inside the embedded viewer.
           </p>
         </div>
@@ -200,19 +200,19 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
                 {/* Project Details Box */}
                 <div className="w-full lg:w-1/2 flex flex-col justify-center">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs font-bold font-spacemono text-[#00ff88]">Project 0{index + 1}</span>
+                    <span className="text-xs font-bold font-mono text-[#00ff88]">Project 0{index + 1}</span>
                     <span className="w-4 h-[1px] bg-slate-300 dark:bg-white/10" />
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span className="text-[11px] font-bold font-spacemono text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-bold font-label text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Verified Live Site
                     </span>
                   </div>
 
-                  <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-800 dark:text-white tracking-tight leading-tight mb-4">
+                  <h3 className="text-2xl sm:text-4xl font-extrabold font-headline text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
                     {project.title}
                   </h3>
 
-                  <p className="text-slate-600 dark:text-[#9798b3] text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                  <p className="text-slate-600 dark:text-gray-300 text-sm sm:text-base leading-relaxed mb-6 font-normal font-body">
                     {project.description}
                   </p>
 
@@ -221,7 +221,7 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
                     {project.tech.map((t, idx) => (
                       <span 
                         key={idx} 
-                        className="px-3 py-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold font-spacemono text-slate-700 dark:text-white/90 rounded-md tracking-wide"
+                        className="px-3 py-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-medium font-mono text-slate-700 dark:text-white/90 rounded-lg tracking-normal"
                       >
                         {t}
                       </span>
@@ -234,7 +234,7 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
                       href={project.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#00ff88] text-[#050507] hover:bg-[#00e077] transition-all duration-300 rounded-xl text-xs font-bold tracking-wider font-spacemono uppercase shadow-lg shadow-[#00ff88]/10 hover:shadow-[#00ff88]/25 hover:-translate-y-0.5 active:scale-95"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#00ff88] text-[#050507] hover:bg-[#00e077] transition-all duration-300 rounded-xl text-xs font-bold tracking-wider font-label uppercase shadow-lg shadow-[#00ff88]/10 hover:shadow-[#00ff88]/25 hover:-translate-y-0.5 active:scale-95"
                     >
                       Visit Live Website <ExternalLink className="w-4 h-4" />
                     </a>
@@ -242,7 +242,7 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
                     {isLiveUrl && (
                       <button 
                         onClick={() => setFullscreenProject(project)}
-                        className="inline-flex items-center gap-2 px-5 py-3 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-all rounded-xl text-xs font-bold tracking-wider font-spacemono uppercase text-slate-700 dark:text-white cursor-pointer"
+                        className="inline-flex items-center gap-2 px-5 py-3 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-all rounded-xl text-xs font-bold tracking-wider font-label uppercase text-slate-700 dark:text-white cursor-pointer"
                       >
                         <Globe className="w-4 h-4 text-[#00ff88]" /> Interactive Frame
                       </button>
@@ -265,7 +265,7 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Footer Area */}
-        <div className="mt-32 pt-12 border-t border-slate-200 dark:border-white/10 text-center flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500 dark:text-[#6b6b80] font-spacemono pb-12">
+        <div className="mt-32 pt-12 border-t border-slate-200 dark:border-white/10 text-center flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500 dark:text-gray-400 font-label pb-12">
           <span>ZERO STUDIO CODE &copy; 2026. ALL RIGHTS RESERVED.</span>
           <span className="flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-[#00ff88] animate-pulse" /> Bangladesh Professional Portfolio Suite
