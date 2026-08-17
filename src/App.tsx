@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, Moon, Sun, Sparkles, ArrowLeft, ExternalLink, ShieldCheck, Zap, Bell, CheckCircle2 } from 'lucide-react';
+import { Menu, Moon, Sun, Sparkles, ArrowLeft, ExternalLink, ShieldCheck, Zap, Bell, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence, useScroll } from 'motion/react';
 import { Sidebar } from './components/Sidebar';
 import { HorizontalSlider } from './components/HorizontalSlider';
@@ -19,7 +19,10 @@ import {
   getUserPlan, 
   getRemainingTrialDays, 
   getAnnouncementConfig, 
+  getSiteCmsConfig,
+  trackSiteVisit,
   AnnouncementConfig,
+  SiteCmsConfig,
   ProjectItem,
   UserPlanData
 } from './utils/storage';
@@ -57,10 +60,10 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      if (path === '/admin' || hash === '#admin') return 'admin';
-      if (path === '/studio' || path === '/zero-studio' || hash === '#studio' || hash === '#zero-studio') return 'zero-studio';
-      if (path === '/pricing' || hash === '#pricing') return 'pricing';
-      if (path === '/projects' || hash === '#projects') return 'projects';
+      if (path === '/admin' || hash.startsWith('#admin') || hash.startsWith('#/admin')) return 'admin';
+      if (path === '/studio' || path === '/zero-studio' || hash.startsWith('#studio') || hash.startsWith('#zero-studio')) return 'zero-studio';
+      if (path === '/pricing' || hash.startsWith('#pricing')) return 'pricing';
+      if (path === '/projects' || hash.startsWith('#projects')) return 'projects';
     }
     return 'home';
   });
@@ -75,19 +78,25 @@ export default function App() {
   const [userPlan, setUserPlan] = useState<UserPlanData>(getUserPlan());
   const [remainingDays, setRemainingDays] = useState<number>(getRemainingTrialDays());
   const [announcement, setAnnouncement] = useState<AnnouncementConfig>(getAnnouncementConfig());
+  const [cms, setCms] = useState<SiteCmsConfig>(getSiteCmsConfig());
 
   const [showIntro, setShowIntro] = useState(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
       // Skip intro on direct sub-routes or admin
-      if (path === '/admin' || hash === '#admin') return false;
+      if (path === '/admin' || hash.startsWith('#admin') || hash.startsWith('#/admin')) return false;
       return !sessionStorage.getItem('hasSeenIntro');
     }
     return false;
   });
   
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Track Site Visit on mount
+  useEffect(() => {
+    trackSiteVisit();
+  }, []);
 
   // Realtime Storage Sync Listener
   useEffect(() => {
@@ -96,31 +105,36 @@ export default function App() {
       setUserPlan(getUserPlan());
       setRemainingDays(getRemainingTrialDays());
       setAnnouncement(getAnnouncementConfig());
+      setCms(getSiteCmsConfig());
     };
 
     window.addEventListener('zero_storage_sync', handleStorageSync);
     return () => window.removeEventListener('zero_storage_sync', handleStorageSync);
   }, []);
 
-  // Sync URL hash with view state
-  useEffect(() => {
+  // Safe Navigation with Browser History pushState
+  const navigate = (targetView: ViewType) => {
+    setView(targetView);
     if (typeof window !== 'undefined') {
-      if (view === 'home' && window.location.hash) {
-        window.history.replaceState(null, '', window.location.pathname);
-      } else if (view !== 'home') {
-        window.history.replaceState(null, '', `#${view}`);
+      if (targetView === 'home') {
+        window.history.pushState({ view: 'home' }, '', window.location.pathname);
+      } else {
+        window.history.pushState({ view: targetView }, '', `#${targetView}`);
       }
     }
-  }, [view]);
+  };
 
-  // Window Popstate Listener
+  // Window Popstate Listener (Browser Back/Forward support)
   useEffect(() => {
     const handlePopState = () => {
-      const hash = window.location.hash.toLowerCase().replace('#', '');
-      if (hash === 'admin') setView('admin');
+      const rawHash = window.location.hash.toLowerCase();
+      const hash = rawHash.replace('#', '').split('?')[0].replace('/', '');
+      if (hash === 'admin' || rawHash.startsWith('#admin') || rawHash.startsWith('#/admin')) setView('admin');
       else if (hash === 'studio' || hash === 'zero-studio') setView('zero-studio');
       else if (hash === 'pricing') setView('pricing');
       else if (hash === 'projects') setView('projects');
+      else if (hash === 'st1') setView('st1');
+      else if (hash === 'zero-ai-learner') setView('zero-ai-learner');
       else if (!hash) setView('home');
     };
     window.addEventListener('popstate', handlePopState);
@@ -163,7 +177,7 @@ export default function App() {
 
   // Trigger Plan Success & Confetti
   const handlePlanActivationSuccess = (planType: 'free' | 'core') => {
-    setView('home');
+    navigate('home');
     setShowConfetti(true);
     if (planType === 'free') {
       setConfettiBannerText('🎉 Congratulations! Your 25-Day Full Free Trial is Activated.');
@@ -182,7 +196,7 @@ export default function App() {
     id: i + 1,
     title: i === 0 ? 'Empty Box' : i === 1 ? 'St1 Portfolio' : i === 2 ? 'Projects Showcase' : i === 3 ? 'Pricing & Plans' : i === 4 ? 'Zero AI Learner' : `${i + 1}th Box`,
     image: i === 4 ? '/1st box.jpg' : i === 1 ? '/2nd box.png' : i === 2 ? '/3rd box.png' : i === 3 ? '/4th box.png' : undefined,
-    onClick: i === 0 ? undefined : i === 1 ? () => setView('st1') : i === 2 ? () => setView('projects') : i === 3 ? () => setView('pricing') : i === 4 ? () => setView('zero-ai-learner') : i === 5 ? () => { setIsWebsiteBuilder(false); setInitialStudioMode('Auto'); setView('zero-studio'); } : undefined,
+    onClick: i === 0 ? undefined : i === 1 ? () => navigate('st1') : i === 2 ? () => navigate('projects') : i === 3 ? () => navigate('pricing') : i === 4 ? () => navigate('zero-ai-learner') : i === 5 ? () => { setIsWebsiteBuilder(false); setInitialStudioMode('Auto'); navigate('zero-studio'); } : undefined,
   }));
 
   const bottomRowItems = Array.from({ length: 6 }).map((_, i) => ({
@@ -208,8 +222,16 @@ export default function App() {
         <>
           <AnimatedBackground />
 
+          {/* Maintenance Notice if enabled in Admin */}
+          {cms.maintenanceMode && view !== 'admin' && (
+            <div className="w-full bg-amber-500 text-black py-2.5 px-4 text-center text-xs font-bold font-mono flex items-center justify-center gap-2 relative z-40">
+              <AlertTriangle className="w-4 h-4" />
+              <span>{cms.maintenanceNotice}</span>
+            </div>
+          )}
+
           {/* Top Live Announcement Banner (Configurable in Admin) */}
-          {announcement.enabled && view === 'home' && (
+          {announcement.enabled && view === 'home' && !cms.maintenanceMode && (
             <aside aria-label="Announcement" className="w-full bg-gradient-to-r from-[#00ff88]/20 via-[#8cacff]/20 to-[#7b5ea7]/20 backdrop-blur-xl border-b border-white/20 dark:border-white/10 py-2.5 px-4 text-center text-xs font-bold text-gray-800 dark:text-white flex items-center justify-center gap-3 relative z-30 shadow-sm">
               <span className="flex items-center gap-1.5 font-mono text-[11px]">
                 <Sparkles className="w-3.5 h-3.5 text-[#00ff88] animate-pulse" />
@@ -217,8 +239,8 @@ export default function App() {
               </span>
               {announcement.linkText && (
                 <button
-                  onClick={() => setView('pricing')}
-                  className="px-3 py-1 rounded-full bg-[#00ff88] text-[#050507] text-[10px] font-black uppercase tracking-wider hover:brightness-110 transition-all cursor-pointer shadow-sm"
+                  onClick={() => navigate('pricing')}
+                  className="px-3 py-1 rounded-full bg-[#00ff88] text-[#050507] text-[10px] font-black uppercase tracking-wider hover:brightness-110 transition-all cursor-pointer shadow-sm font-label"
                 >
                   {announcement.linkText}
                 </button>
@@ -244,33 +266,33 @@ export default function App() {
           <Sidebar 
             isOpen={isSidebarOpen} 
             onClose={() => setIsSidebarOpen(false)} 
-            onUpgradeClick={() => setView('pricing')}
+            onUpgradeClick={() => navigate('pricing')}
             onToolClick={(id) => {
               if (id === 'build-website' || id === 'build-websites' || id === 'websites') {
                 // Open Studio Code with ChatGPT Website Architect Mode
                 setIsWebsiteBuilder(true);
                 setInitialStudioMode('Website');
-                setView('zero-studio');
+                navigate('zero-studio');
               } else if (id === 'build-apps' || id === 'apps') {
                 setIsWebsiteBuilder(false);
                 setInitialStudioMode('Auto');
-                setView('zero-studio');
+                navigate('zero-studio');
               } else if (id === 'projects') {
-                setView('projects');
+                navigate('projects');
               } else if (id === 'cv-job' || id === 'cv-student') {
-                setView('cv-builder');
+                navigate('cv-builder');
               } else if (id === 'ai-resume-analyzer' || id === 'detect-mistakes' || id === 'suggest-improvements' || id === 'give-resume-score') {
-                setView('cv-analyzer');
+                navigate('cv-analyzer');
               } else if (id === 'job-email' || id === 'business-email' || id === 'complaint-email' || id === 'university-email') {
-                setView('email-writer');
+                navigate('email-writer');
               } else if (id === 'email-replier') {
-                setView('email-replier');
+                navigate('email-replier');
               } else if (id === 'sop-writer' || id === 'human-sop' || id === 'university' || id === 'student-visa') {
-                setView('sop-writer');
+                navigate('sop-writer');
               } else if (id === 'sop-checker') {
-                setView('sop-analyzer');
+                navigate('sop-analyzer');
               } else if (id === 'html' || id === 'java' || id === 'python' || id === 'kothin') {
-                setView('ai-code');
+                navigate('ai-code');
               }
               setIsSidebarOpen(false);
             }}
@@ -343,7 +365,7 @@ export default function App() {
                   {/* Content Rows */}
                   <div className="flex flex-col gap-24">
                     
-                    {/* Hero Tagline Banner */}
+                    {/* Hero Tagline Banner (Driven by CMS) */}
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -352,18 +374,18 @@ export default function App() {
                     >
                       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/30 dark:border-white/15 text-[#8cacff] text-xs font-bold font-label tracking-widest uppercase mb-6 shadow-sm">
                         <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
-                        Next-Gen Digital Engine & AI Studio 2026
+                        {cms.badgeText}
                       </div>
-                      <h1 className="text-4xl sm:text-7xl font-extrabold text-gray-900 dark:text-white font-headline tracking-tight leading-[1.1] mb-6">
-                        Engineered for <span className="bg-gradient-to-r from-[#8cacff] via-[#769dff] to-[#9bddff] bg-clip-text text-transparent">Creators, Developers & Enterprises.</span>
+                      <h1 className="text-4xl sm:text-7xl font-black text-gray-900 dark:text-white font-headline tracking-tight leading-[1.1] mb-6">
+                        {cms.heroTitle}
                       </h1>
                       <p className="text-base sm:text-xl text-gray-600 dark:text-gray-300 font-body leading-relaxed max-w-2xl mb-8">
-                        Experience blazing-fast web applications, custom enterprise deployments, and a complete suite of intelligent AI productivity tools.
+                        {cms.heroSubtitle}
                       </p>
                       
                       <div className="flex flex-wrap items-center gap-4 justify-center sm:justify-start">
                         <button 
-                          onClick={() => setView('projects')}
+                          onClick={() => navigate('projects')}
                           className="px-6 py-3.5 bg-gradient-to-r from-[#8cacff] to-[#769dff] text-[#002a6e] hover:brightness-110 transition-all duration-300 rounded-2xl font-bold font-label uppercase tracking-wider text-xs shadow-lg shadow-[#8cacff]/20 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-2"
                         >
                           Explore Live Projects <ExternalLink className="w-4 h-4" />
@@ -373,7 +395,7 @@ export default function App() {
                           onClick={() => {
                             setIsWebsiteBuilder(false);
                             setInitialStudioMode('Auto');
-                            setView('zero-studio');
+                            navigate('zero-studio');
                           }}
                           className="px-6 py-3.5 bg-white/20 dark:bg-white/10 backdrop-blur-md border border-gray-300 dark:border-white/20 hover:bg-white/30 dark:hover:bg-white/20 transition-all rounded-2xl font-bold font-label uppercase tracking-wider text-xs text-gray-800 dark:text-white cursor-pointer"
                           id="launch-studio-code-btn"
@@ -420,12 +442,12 @@ export default function App() {
                             <span className="w-8 h-[2px] bg-[#00ff88]" />
                             <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#00ff88] font-label">Verified Deployments</span>
                           </div>
-                          <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 dark:text-white font-headline tracking-tight">
+                          <h2 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white font-headline tracking-tight">
                             ENTERPRISE WEB PORTALS
                           </h2>
                         </div>
                         <button 
-                          onClick={() => setView('projects')}
+                          onClick={() => navigate('projects')}
                           className="text-xs font-bold font-label uppercase tracking-widest text-[#8cacff] hover:text-white flex items-center gap-2 group cursor-pointer"
                         >
                           View All Deployments ({projects.length})
@@ -450,15 +472,15 @@ export default function App() {
                             </div>
                             
                             <div className="p-6">
-                              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{proj.title}</h3>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-6 line-clamp-2 leading-relaxed">{proj.description}</p>
+                              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 font-headline">{proj.title}</h3>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-6 line-clamp-2 leading-relaxed font-body">{proj.description}</p>
                               
                               <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-white/10">
                                 <a 
                                   href={proj.link}
                                   target="_blank" 
                                   rel="noopener noreferrer" 
-                                  className="text-xs font-bold text-[#8cacff] hover:text-blue-500 transition-colors flex items-center gap-1.5"
+                                  className="text-xs font-bold text-[#8cacff] hover:text-blue-500 transition-colors flex items-center gap-1.5 font-label"
                                 >
                                   Open Live Portal <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
@@ -475,7 +497,7 @@ export default function App() {
 
                       <div className="max-w-2xl mb-12">
                         <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#8cacff] font-label mb-2 block">Intelligent Architecture</span>
-                        <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 dark:text-white font-headline tracking-tight">
+                        <h2 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white font-headline tracking-tight">
                           MULTI-MODAL AI WORKSUITE
                         </h2>
                       </div>
@@ -486,10 +508,10 @@ export default function App() {
                             <div className="w-12 h-12 rounded-2xl bg-[#8cacff]/10 text-[#8cacff] flex items-center justify-center mb-4">
                               <Sparkles className="w-6 h-6" />
                             </div>
-                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">CV & Resume Builder</h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">Generate ATS-optimized resumes with scoring, keyword recommendations, and error detection.</p>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 font-headline">CV & Resume Builder</h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4 font-body">Generate ATS-optimized resumes with scoring, keyword recommendations, and error detection.</p>
                           </div>
-                          <button onClick={() => setView('cv-builder')} className="text-xs font-bold text-[#8cacff] flex items-center gap-1 hover:underline cursor-pointer">Launch Builder &rarr;</button>
+                          <button onClick={() => navigate('cv-builder')} className="text-xs font-bold text-[#8cacff] flex items-center gap-1 hover:underline cursor-pointer font-label">Launch Builder &rarr;</button>
                         </div>
 
                         <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-3xl flex flex-col justify-between hover:border-[#00ff88]/40 transition-colors">
@@ -497,10 +519,10 @@ export default function App() {
                             <div className="w-12 h-12 rounded-2xl bg-[#00ff88]/10 text-[#00ff88] flex items-center justify-center mb-4">
                               <Sparkles className="w-6 h-6" />
                             </div>
-                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">Smart Email Writer</h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">Draft job inquiries, complaints, and professional responses in seconds with custom tones.</p>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 font-headline">Smart Email Writer</h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4 font-body">Draft job inquiries, complaints, and professional responses in seconds with custom tones.</p>
                           </div>
-                          <button onClick={() => setView('email-writer')} className="text-xs font-bold text-[#00ff88] flex items-center gap-1 hover:underline cursor-pointer">Launch Writer &rarr;</button>
+                          <button onClick={() => navigate('email-writer')} className="text-xs font-bold text-[#00ff88] flex items-center gap-1 hover:underline cursor-pointer font-label">Launch Writer &rarr;</button>
                         </div>
 
                         <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-3xl flex flex-col justify-between hover:border-[#9bddff]/40 transition-colors">
@@ -508,10 +530,10 @@ export default function App() {
                             <div className="w-12 h-12 rounded-2xl bg-[#9bddff]/10 text-[#9bddff] flex items-center justify-center mb-4">
                               <Sparkles className="w-6 h-6" />
                             </div>
-                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">SOP Generator & Audit</h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">Create comprehensive Statement of Purpose documents for universities and student visas.</p>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 font-headline">SOP Generator & Audit</h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4 font-body">Create comprehensive Statement of Purpose documents for universities and student visas.</p>
                           </div>
-                          <button onClick={() => setView('sop-writer')} className="text-xs font-bold text-[#9bddff] flex items-center gap-1 hover:underline cursor-pointer">Generate SOP &rarr;</button>
+                          <button onClick={() => navigate('sop-writer')} className="text-xs font-bold text-[#9bddff] flex items-center gap-1 hover:underline cursor-pointer font-label">Generate SOP &rarr;</button>
                         </div>
 
                         <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-3xl flex flex-col justify-between hover:border-[#7b5ea7]/40 transition-colors">
@@ -519,16 +541,16 @@ export default function App() {
                             <div className="w-12 h-12 rounded-2xl bg-[#7b5ea7]/10 text-[#7b5ea7] flex items-center justify-center mb-4">
                               <Sparkles className="w-6 h-6" />
                             </div>
-                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">ChatGPT Website Builder</h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">Live conversational coding assistant generating responsive HTML, CSS, and Tailwind components.</p>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 font-headline">ChatGPT Website Builder</h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4 font-body">Live conversational coding assistant generating responsive HTML, CSS, and Tailwind components.</p>
                           </div>
                           <button 
                             onClick={() => {
                               setIsWebsiteBuilder(true);
                               setInitialStudioMode('Website');
-                              setView('zero-studio');
+                              navigate('zero-studio');
                             }} 
-                            className="text-xs font-bold text-[#7b5ea7] flex items-center gap-1 hover:underline cursor-pointer"
+                            className="text-xs font-bold text-[#7b5ea7] flex items-center gap-1 hover:underline cursor-pointer font-label"
                           >
                             Open Website Architect &rarr;
                           </button>
@@ -560,53 +582,7 @@ export default function App() {
                       </div>
                     </section>
 
-                    {/* SECTION 4: Why Choose Zero Studio (Feature Highlights) */}
-                    <section className="relative">
-                      <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent mb-16" />
-
-                      <div className="max-w-2xl mb-12">
-                        <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#8cacff] font-label mb-2 block">Why Zero Studio</span>
-                        <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 dark:text-white font-headline tracking-tight">
-                          BUILT FOR HIGH PERFORMANCE & SCALE
-                        </h2>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
-                          <div className="w-10 h-10 rounded-xl bg-[#8cacff]/10 text-[#8cacff] flex items-center justify-center mb-4">
-                            <Sparkles className="w-5 h-5" />
-                          </div>
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Modern Micro-Interactive Architecture</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Built with React 19, Vite, and Framer Motion to ensure smooth 60fps transitions and zero latency.</p>
-                        </div>
-
-                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
-                          <div className="w-10 h-10 rounded-xl bg-[#00ff88]/10 text-[#00ff88] flex items-center justify-center mb-4">
-                            <Sparkles className="w-5 h-5" />
-                          </div>
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Multi-Model AI Integration</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Powered by Google Gemini and Groq acceleration for deep contextual analysis and real-time generation.</p>
-                        </div>
-
-                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
-                          <div className="w-10 h-10 rounded-xl bg-[#9bddff]/10 text-[#9bddff] flex items-center justify-center mb-4">
-                            <Sparkles className="w-5 h-5" />
-                          </div>
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Cross-Platform Responsive Design</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Pixel-perfect layout optimization across desktop monitors, tablets, and mobile smartphones.</p>
-                        </div>
-
-                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
-                          <div className="w-10 h-10 rounded-xl bg-[#7b5ea7]/10 text-[#7b5ea7] flex items-center justify-center mb-4">
-                            <Sparkles className="w-5 h-5" />
-                          </div>
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Verified Enterprise Deployments</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Live verified portals hosted on Vercel and Netlify with real-time interactive previews.</p>
-                        </div>
-                      </div>
-                    </section>
-
-                    {/* SECTION 5: Professional Footer */}
+                    {/* SECTION 4: Professional Footer */}
                     <footer className="pt-16 border-t border-gray-200 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-8 text-xs font-label text-gray-500 dark:text-gray-400">
                       <div className="flex flex-col items-center md:items-start gap-2">
                         <img src="/logo.png" alt="Zero Studio" className="h-10 w-auto object-contain" />
@@ -614,14 +590,14 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap items-center gap-6">
-                        <button onClick={() => setView('projects')} className="hover:text-[#8cacff] transition-colors cursor-pointer">Projects</button>
-                        <button onClick={() => { setIsWebsiteBuilder(false); setInitialStudioMode('Auto'); setView('zero-studio'); }} className="hover:text-[#8cacff] transition-colors cursor-pointer">Studio Code</button>
-                        <button onClick={() => setView('pricing')} className="hover:text-[#8cacff] transition-colors cursor-pointer">Pricing</button>
-                        <button onClick={() => setView('admin')} className="text-[#00ff88] hover:underline font-bold transition-colors cursor-pointer flex items-center gap-1">
+                        <button onClick={() => navigate('projects')} className="hover:text-[#8cacff] transition-colors cursor-pointer">Projects</button>
+                        <button onClick={() => { setIsWebsiteBuilder(false); setInitialStudioMode('Auto'); navigate('zero-studio'); }} className="hover:text-[#8cacff] transition-colors cursor-pointer">Studio Code</button>
+                        <button onClick={() => navigate('pricing')} className="hover:text-[#8cacff] transition-colors cursor-pointer">Pricing</button>
+                        <button onClick={() => navigate('admin')} className="text-[#00ff88] hover:underline font-bold transition-colors cursor-pointer flex items-center gap-1">
                           <ShieldCheck className="w-3.5 h-3.5" /> Admin Portal
                         </button>
-                        <a href="mailto:arafathrahman711@gmail.com" className="hover:text-[#8cacff] transition-colors">Contact</a>
-                        <a href="https://github.com/smartworldarafath" target="_blank" rel="noopener noreferrer" className="hover:text-[#8cacff] transition-colors">GitHub</a>
+                        <a href={`mailto:${cms.contactEmail}`} className="hover:text-[#8cacff] transition-colors">Contact</a>
+                        <a href={cms.githubUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#8cacff] transition-colors">GitHub</a>
                       </div>
                     </footer>
 
@@ -630,38 +606,38 @@ export default function App() {
               ) : view === 'pricing' ? (
                 <PricingPage 
                   key="pricing" 
-                  onBack={() => setView('home')} 
+                  onBack={() => navigate('home')} 
                   onActivatePlanSuccess={handlePlanActivationSuccess}
                 />
               ) : view === 'zero-studio' ? (
                 <ZeroStudioPage 
                   key="zero-studio" 
-                  onBack={() => setView('home')} 
-                  onPricingClick={() => setView('pricing')}
-                  onProjectsClick={() => setView('projects')}
+                  onBack={() => navigate('home')} 
+                  onPricingClick={() => navigate('pricing')}
+                  onProjectsClick={() => navigate('projects')}
                   initialMode={initialStudioMode}
                   isWebsiteBuilder={isWebsiteBuilder}
                 />
               ) : view === 'projects' ? (
-                <ProjectsPage key="projects" onBack={() => setView('home')} />
+                <ProjectsPage key="projects" onBack={() => navigate('home')} />
               ) : view === 'admin' ? (
-                <AdminPortal key="admin" onBack={() => setView('home')} />
+                <AdminPortal key="admin" onBack={() => navigate('home')} />
               ) : view === 'zero-ai-learner' ? (
                 <ZeroAiLearnerPage
                   key="zero-ai-learner"
-                  onBack={() => setView('home')}
-                  onPricingClick={() => setView('pricing')}
+                  onBack={() => navigate('home')}
+                  onPricingClick={() => navigate('pricing')}
                 />
               ) : view === 'st1' ? (
                 <St1Page
                   key="st1"
-                  onBack={() => setView('home')}
-                  onPricingClick={() => setView('pricing')}
+                  onBack={() => navigate('home')}
+                  onPricingClick={() => navigate('pricing')}
                 />
               ) : (
                 <div className="relative">
                   <button 
-                    onClick={() => setView('home')}
+                    onClick={() => navigate('home')}
                     className="mb-8 flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-sm font-bold text-black dark:text-white hover:bg-white/20 transition-all cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />

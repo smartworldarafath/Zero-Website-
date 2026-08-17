@@ -7,6 +7,7 @@ import {
 import { 
   getPricingConfig, 
   setUserPlan, 
+  addContactInquiry,
   PricingConfig 
 } from '../utils/storage';
 
@@ -78,6 +79,15 @@ export function PricingPage({ onBack, onActivatePlanSuccess }: PricingPageProps)
 
     setIsSendingMail(true);
 
+    // Save into Admin CRM Inquiries Inbox
+    addContactInquiry({
+      name: contactName.trim(),
+      email: contactEmail.trim(),
+      company: contactCompany.trim() || 'Individual',
+      project: contactProject.trim() || 'Enterprise Custom AI Web Portal',
+      message: contactMessage.trim()
+    });
+
     setTimeout(() => {
       const subject = encodeURIComponent(`[Zero Studio Enterprise Inquiry] from ${contactName} - ${contactCompany || 'Individual'}`);
       const body = encodeURIComponent(
@@ -112,7 +122,7 @@ ${contactName}`
       setContactCompany('');
       setContactProject('');
       setContactMessage('');
-    }, 1200);
+    }, 1000);
   };
 
   return (
