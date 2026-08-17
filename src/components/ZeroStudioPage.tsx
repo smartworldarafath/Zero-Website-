@@ -246,6 +246,22 @@ export function ZeroStudioPage({
   const [currentMode, setCurrentMode] = useState<InputMode>(initialMode || (isWebsiteBuilder ? 'Website' : 'Auto'));
   const [modelThinkingLevels, setModelThinkingLevels] = useState<Record<string, ThinkingLevel>>({});
   
+  const [displayView, setDisplayView] = useState<'portal' | 'chat'>(isWebsiteBuilder ? 'chat' : 'portal');
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === 'open-pricing' && onPricingClick) {
+        onPricingClick();
+      } else if (event.data === 'open-projects' && onProjectsClick) {
+        onProjectsClick();
+      } else if (event.data === 'open-chat' || event.data === 'open-website-builder') {
+        setDisplayView('chat');
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onPricingClick, onProjectsClick]);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
     const saved = localStorage.getItem('zero_stitch_sessions');
@@ -592,6 +608,44 @@ export function ZeroStudioPage({
     );
   }
 
+  if (displayView === 'portal') {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[70] flex flex-col bg-[#050507] overflow-hidden"
+      >
+        {/* Floating Top Controls */}
+        <div className="absolute top-5 left-5 right-5 z-[100] flex justify-between items-center pointer-events-none">
+          <button
+            onClick={onBack}
+            className="pointer-events-auto flex items-center gap-2 px-5 py-2.5 bg-black/80 backdrop-blur-xl border border-white/20 rounded-full text-white hover:bg-black hover:border-[#00ff88]/50 transition-all shadow-2xl cursor-pointer active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#00ff88]" />
+            <span className="text-xs font-bold font-label uppercase tracking-wider">Back to Home</span>
+          </button>
+
+          <div className="pointer-events-auto flex items-center gap-3">
+            <button
+              onClick={() => setDisplayView('chat')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#00ff88] to-[#00e077] text-[#050507] rounded-full text-xs font-black font-label uppercase tracking-wider shadow-lg shadow-[#00ff88]/30 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 stroke-[2.5]" />
+              <span>Launch AI Studio Chat & Code</span>
+            </button>
+          </div>
+        </div>
+
+        <iframe 
+          src="/zero-studio-code.html" 
+          className="w-full h-full border-none bg-transparent"
+          title="Zero Studio Code"
+        />
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -809,14 +863,27 @@ export function ZeroStudioPage({
               </AnimatePresence>
             </div>
           </div>
-          {/* Theme Toggle */}
-          <button onClick={toggleTheme} className="p-2.5 rounded-xl transition-all duration-300 active:scale-90 shadow-sm" style={{ background: t.bgHover, color: t.accentText, border: `1px solid ${t.borderLight}` }} title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-            <AnimatePresence mode="wait">
-              <motion.div key={isDarkMode ? 'dark' : 'light'} initial={{ scale: 0.5, rotate: -180, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} exit={{ scale: 0.5, rotate: 180, opacity: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 22 }}>
-                {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-indigo-600" />}
-              </motion.div>
-            </AnimatePresence>
-          </button>
+          {/* Header Right Actions */}
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setDisplayView('portal')} 
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all duration-200 active:scale-95 text-xs font-bold font-label shadow-sm cursor-pointer"
+              style={{ background: t.bgHover, color: t.accentText, border: `1px solid ${t.borderLight}` }}
+              title="Return to Studio Showcase & Features"
+            >
+              <Globe className="w-3.5 h-3.5" style={{ color: t.accent }} />
+              <span className="hidden sm:inline">Studio Showcase</span>
+            </button>
+
+            {/* Theme Toggle */}
+            <button onClick={toggleTheme} className="p-2.5 rounded-xl transition-all duration-300 active:scale-90 shadow-sm cursor-pointer" style={{ background: t.bgHover, color: t.accentText, border: `1px solid ${t.borderLight}` }} title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+              <AnimatePresence mode="wait">
+                <motion.div key={isDarkMode ? 'dark' : 'light'} initial={{ scale: 0.5, rotate: -180, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} exit={{ scale: 0.5, rotate: 180, opacity: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 22 }}>
+                  {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-indigo-600" />}
+                </motion.div>
+              </AnimatePresence>
+            </button>
+          </div>
         </header>
 
         {/* ─── Chat Canvas ─── */}
