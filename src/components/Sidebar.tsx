@@ -11,7 +11,7 @@ type SidebarItem = {
 
 const sidebarData: SidebarItem[] = [
   { id: 'build-apps', label: 'Build Apps' },
-  { id: 'build-websites', label: 'Build Websites' },
+  { id: 'build-website', label: 'Build Website' },
   {
     id: 'ai',
     label: 'AI',

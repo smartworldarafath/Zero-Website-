@@ -1,17 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, Moon, Sun, Sparkles, ArrowLeft, ExternalLink } from 'lucide-react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { Menu, Moon, Sun, Sparkles, ArrowLeft, ExternalLink, ShieldCheck, Zap, Bell, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence, useScroll } from 'motion/react';
 import { Sidebar } from './components/Sidebar';
 import { HorizontalSlider } from './components/HorizontalSlider';
 import { ChatBot } from './components/ChatBot';
 import { PricingPage } from './components/PricingPage';
 import { SplashScreen } from './components/SplashScreen';
-import { ZeroStudioPage } from './components/ZeroStudioPage';
+import { ZeroStudioPage, InputMode } from './components/ZeroStudioPage';
 import { ZeroAiLearnerPage } from './components/ZeroAiLearnerPage';
 import { St1Page } from './components/St1Page';
 import { useTheme } from './components/ThemeProvider';
 import { ProjectsPage } from './components/ProjectsPage';
 import { AnimatedBackground } from './components/AnimatedBackground';
+import { AdminPortal } from './components/AdminPortal';
+import { WinningConfetti } from './components/WinningConfetti';
+import { 
+  getStoredProjects, 
+  getUserPlan, 
+  getRemainingTrialDays, 
+  getAnnouncementConfig, 
+  AnnouncementConfig,
+  ProjectItem,
+  UserPlanData
+} from './utils/storage';
 
 // AI Tool Pages
 import { EmailWriter } from './pages/EmailWriter';
@@ -22,27 +33,99 @@ import { SOPAnalyzer } from './pages/SOPAnalyzer';
 import { SOPWriter } from './pages/SOPWriter';
 import { CodeGenerator } from './pages/CodeGenerator';
 
-type ViewType = 'home' | 'pricing' | 'zero-studio' | 'zero-ai-learner' | 'st1' | 'email-writer' | 'email-replier' | 'cv-analyzer' | 'cv-builder' | 'sop-analyzer' | 'sop-writer' | 'ai-code' | 'projects';
+type ViewType = 
+  | 'home' 
+  | 'pricing' 
+  | 'zero-studio' 
+  | 'zero-ai-learner' 
+  | 'st1' 
+  | 'email-writer' 
+  | 'email-replier' 
+  | 'cv-analyzer' 
+  | 'cv-builder' 
+  | 'sop-analyzer' 
+  | 'sop-writer' 
+  | 'ai-code' 
+  | 'projects'
+  | 'admin';
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [view, setView] = useState<ViewType>('home');
-  const [showIntro, setShowIntro] = useState(() => {
-    // Check session storage immediately to avoid flash of content
+  
+  // URL Routing & Initial View resolver
+  const [view, setView] = useState<ViewType>(() => {
     if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path === '/admin' || hash === '#admin') return 'admin';
+      if (path === '/studio' || path === '/zero-studio' || hash === '#studio' || hash === '#zero-studio') return 'zero-studio';
+      if (path === '/pricing' || hash === '#pricing') return 'pricing';
+      if (path === '/projects' || hash === '#projects') return 'projects';
+    }
+    return 'home';
+  });
+
+  const [initialStudioMode, setInitialStudioMode] = useState<InputMode>('Auto');
+  const [isWebsiteBuilder, setIsWebsiteBuilder] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [confettiBannerText, setConfettiBannerText] = useState<string | null>(null);
+
+  // Storage synced states
+  const [projects, setProjects] = useState<ProjectItem[]>(getStoredProjects());
+  const [userPlan, setUserPlan] = useState<UserPlanData>(getUserPlan());
+  const [remainingDays, setRemainingDays] = useState<number>(getRemainingTrialDays());
+  const [announcement, setAnnouncement] = useState<AnnouncementConfig>(getAnnouncementConfig());
+
+  const [showIntro, setShowIntro] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      // Skip intro on direct sub-routes or admin
+      if (path === '/admin' || hash === '#admin') return false;
       return !sessionStorage.getItem('hasSeenIntro');
     }
     return false;
   });
+  
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Realtime Storage Sync Listener
   useEffect(() => {
-    // Backup check in case the initial state didn't catch it (SSR/Hydration)
-    const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
-    if (hasSeenIntro && showIntro) {
-      setShowIntro(false);
+    const handleStorageSync = () => {
+      setProjects(getStoredProjects());
+      setUserPlan(getUserPlan());
+      setRemainingDays(getRemainingTrialDays());
+      setAnnouncement(getAnnouncementConfig());
+    };
+
+    window.addEventListener('zero_storage_sync', handleStorageSync);
+    return () => window.removeEventListener('zero_storage_sync', handleStorageSync);
+  }, []);
+
+  // Sync URL hash with view state
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (view === 'home' && window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname);
+      } else if (view !== 'home') {
+        window.history.replaceState(null, '', `#${view}`);
+      }
     }
-  }, [showIntro]);
+  }, [view]);
+
+  // Window Popstate Listener
+  useEffect(() => {
+    const handlePopState = () => {
+      const hash = window.location.hash.toLowerCase().replace('#', '');
+      if (hash === 'admin') setView('admin');
+      else if (hash === 'studio' || hash === 'zero-studio') setView('zero-studio');
+      else if (hash === 'pricing') setView('pricing');
+      else if (hash === 'projects') setView('projects');
+      else if (!hash) setView('home');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const { theme, setTheme } = useTheme();
   const [ripple, setRipple] = useState<{
@@ -54,8 +137,6 @@ export default function App() {
 
   const toggleThemeWithRipple = (e: React.MouseEvent) => {
     const toTheme = theme === 'dark' ? 'light' : 'dark';
-    
-    // Fallback: If clicked button itself has coordinates, use it, else default top corner
     const x = e.clientX || window.innerWidth - 64;
     const y = e.clientY || 64;
     
@@ -66,12 +147,10 @@ export default function App() {
       toTheme
     });
 
-    // Toggle original theme state halfway through transition (so the change page colors flow perfectly)
     setTimeout(() => {
       setTheme(toTheme);
     }, 380);
 
-    // End active ripple and clean up (duration: 850ms)
     setTimeout(() => {
       setRipple(null);
     }, 850);
@@ -81,6 +160,21 @@ export default function App() {
     setShowIntro(false);
     sessionStorage.setItem('hasSeenIntro', 'true');
   };
+
+  // Trigger Plan Success & Confetti
+  const handlePlanActivationSuccess = (planType: 'free' | 'core') => {
+    setView('home');
+    setShowConfetti(true);
+    if (planType === 'free') {
+      setConfettiBannerText('🎉 Congratulations! Your 25-Day Full Free Trial is Activated.');
+    } else {
+      setConfettiBannerText('✨ Core Plan Request Registered! We will contact you soon. Enjoy your Free Access in the meantime.');
+    }
+
+    setTimeout(() => {
+      setConfettiBannerText(null);
+    }, 8000);
+  };
   
   const { scrollY } = useScroll();
 
@@ -88,7 +182,7 @@ export default function App() {
     id: i + 1,
     title: i === 0 ? 'Empty Box' : i === 1 ? 'St1 Portfolio' : i === 2 ? 'Projects Showcase' : i === 3 ? 'Pricing & Plans' : i === 4 ? 'Zero AI Learner' : `${i + 1}th Box`,
     image: i === 4 ? '/1st box.jpg' : i === 1 ? '/2nd box.png' : i === 2 ? '/3rd box.png' : i === 3 ? '/4th box.png' : undefined,
-    onClick: i === 0 ? undefined : i === 1 ? () => setView('st1') : i === 2 ? () => setView('projects') : i === 3 ? () => setView('pricing') : i === 4 ? () => setView('zero-ai-learner') : i === 5 ? () => setView('zero-studio') : undefined,
+    onClick: i === 0 ? undefined : i === 1 ? () => setView('st1') : i === 2 ? () => setView('projects') : i === 3 ? () => setView('pricing') : i === 4 ? () => setView('zero-ai-learner') : i === 5 ? () => { setIsWebsiteBuilder(false); setInitialStudioMode('Auto'); setView('zero-studio'); } : undefined,
   }));
 
   const bottomRowItems = Array.from({ length: 6 }).map((_, i) => ({
@@ -98,6 +192,12 @@ export default function App() {
 
   return (
     <div ref={containerRef} className="min-h-screen w-full relative overflow-x-hidden transition-colors duration-500 bg-transparent dark:bg-transparent">
+      
+      {/* Winning Confetti Celebration Particle Engine */}
+      {showConfetti && (
+        <WinningConfetti onComplete={() => setShowConfetti(false)} />
+      )}
+
       <AnimatePresence>
         {showIntro && (
           <SplashScreen onComplete={handleIntroComplete} />
@@ -107,21 +207,71 @@ export default function App() {
       {!showIntro && (
         <>
           <AnimatedBackground />
+
+          {/* Top Live Announcement Banner (Configurable in Admin) */}
+          {announcement.enabled && view === 'home' && (
+            <aside aria-label="Announcement" className="w-full bg-gradient-to-r from-[#00ff88]/20 via-[#8cacff]/20 to-[#7b5ea7]/20 backdrop-blur-xl border-b border-white/20 dark:border-white/10 py-2.5 px-4 text-center text-xs font-bold text-gray-800 dark:text-white flex items-center justify-center gap-3 relative z-30 shadow-sm">
+              <span className="flex items-center gap-1.5 font-mono text-[11px]">
+                <Sparkles className="w-3.5 h-3.5 text-[#00ff88] animate-pulse" />
+                {announcement.text}
+              </span>
+              {announcement.linkText && (
+                <button
+                  onClick={() => setView('pricing')}
+                  className="px-3 py-1 rounded-full bg-[#00ff88] text-[#050507] text-[10px] font-black uppercase tracking-wider hover:brightness-110 transition-all cursor-pointer shadow-sm"
+                >
+                  {announcement.linkText}
+                </button>
+              )}
+            </aside>
+          )}
+
+          {/* Winning Celebration Banner */}
+          <AnimatePresence>
+            {confettiBannerText && view === 'home' && (
+              <motion.div
+                initial={{ opacity: 0, y: -30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                className="w-full bg-gradient-to-r from-[#00ff88] to-[#00e077] py-3.5 px-4 text-center text-xs sm:text-sm font-extrabold text-[#050507] shadow-2xl flex items-center justify-center gap-2 relative z-40"
+              >
+                <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
+                <span>{confettiBannerText}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <Sidebar 
             isOpen={isSidebarOpen} 
             onClose={() => setIsSidebarOpen(false)} 
             onUpgradeClick={() => setView('pricing')}
             onToolClick={(id) => {
-              if (id === 'build-apps' || id === 'apps') setView('zero-studio');
-              else if (id === 'build-websites' || id === 'websites') setView('zero-studio');
-              else if (id === 'cv-job' || id === 'cv-student') setView('cv-builder');
-              else if (id === 'ai-resume-analyzer' || id === 'detect-mistakes' || id === 'suggest-improvements' || id === 'give-resume-score') setView('cv-analyzer');
-              else if (id === 'job-email' || id === 'business-email' || id === 'complaint-email' || id === 'university-email') setView('email-writer');
-              else if (id === 'email-replier') setView('email-replier');
-              else if (id === 'sop-writer' || id === 'human-sop' || id === 'university' || id === 'student-visa') setView('sop-writer');
-              else if (id === 'sop-checker') setView('sop-analyzer');
-              else if (id === 'html' || id === 'java' || id === 'python' || id === 'kothin') setView('ai-code');
-              // Add more mappings as needed
+              if (id === 'build-website' || id === 'build-websites' || id === 'websites') {
+                // Open Studio Code with ChatGPT Website Architect Mode
+                setIsWebsiteBuilder(true);
+                setInitialStudioMode('Website');
+                setView('zero-studio');
+              } else if (id === 'build-apps' || id === 'apps') {
+                setIsWebsiteBuilder(false);
+                setInitialStudioMode('Auto');
+                setView('zero-studio');
+              } else if (id === 'projects') {
+                setView('projects');
+              } else if (id === 'cv-job' || id === 'cv-student') {
+                setView('cv-builder');
+              } else if (id === 'ai-resume-analyzer' || id === 'detect-mistakes' || id === 'suggest-improvements' || id === 'give-resume-score') {
+                setView('cv-analyzer');
+              } else if (id === 'job-email' || id === 'business-email' || id === 'complaint-email' || id === 'university-email') {
+                setView('email-writer');
+              } else if (id === 'email-replier') {
+                setView('email-replier');
+              } else if (id === 'sop-writer' || id === 'human-sop' || id === 'university' || id === 'student-visa') {
+                setView('sop-writer');
+              } else if (id === 'sop-checker') {
+                setView('sop-analyzer');
+              } else if (id === 'html' || id === 'java' || id === 'python' || id === 'kothin') {
+                setView('ai-code');
+              }
               setIsSidebarOpen(false);
             }}
           />
@@ -167,8 +317,15 @@ export default function App() {
                       </button>
                     </div>
 
-                    {/* Top Right Theme Control */}
+                    {/* Top Right Controls & Plan Status */}
                     <div className="flex items-center gap-3">
+                      {userPlan.status === 'active' && (
+                        <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#00ff88]/15 border border-[#00ff88]/30 text-[#00ff88] text-xs font-mono font-bold">
+                          <ShieldCheck className="w-4 h-4" />
+                          <span>{userPlan.plan.toUpperCase()} • {remainingDays}d Left</span>
+                        </div>
+                      )}
+
                       <button
                         onClick={(e) => toggleThemeWithRipple(e)}
                         className="p-2.5 sm:p-3 bg-white/50 dark:bg-white/10 backdrop-blur-xl border border-white/60 dark:border-white/20 rounded-xl hover:bg-white/70 dark:hover:bg-white/20 hover:scale-105 transition-all text-gray-800 dark:text-yellow-400 shadow-md active:scale-95 cursor-pointer flex items-center justify-center"
@@ -213,8 +370,13 @@ export default function App() {
                         </button>
                         
                         <button 
-                          onClick={() => setView('zero-studio')}
+                          onClick={() => {
+                            setIsWebsiteBuilder(false);
+                            setInitialStudioMode('Auto');
+                            setView('zero-studio');
+                          }}
                           className="px-6 py-3.5 bg-white/20 dark:bg-white/10 backdrop-blur-md border border-gray-300 dark:border-white/20 hover:bg-white/30 dark:hover:bg-white/20 transition-all rounded-2xl font-bold font-label uppercase tracking-wider text-xs text-gray-800 dark:text-white cursor-pointer"
+                          id="launch-studio-code-btn"
                         >
                           Launch Studio Code
                         </button>
@@ -248,7 +410,7 @@ export default function App() {
                       <HorizontalSlider items={bottomRowItems} startIndex={7} />
                     </motion.section>
 
-                    {/* SECTION 1: Featured Live Projects Grid Showcase */}
+                    {/* SECTION 1: Featured Live Projects Grid Showcase (Realtime from Admin) */}
                     <section className="relative pt-12">
                       <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent mb-16" />
                       
@@ -259,244 +421,140 @@ export default function App() {
                             <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#00ff88] font-label">Verified Deployments</span>
                           </div>
                           <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 dark:text-white font-headline tracking-tight">
-                            ENGINEERED <span className="text-[#00ff88]">LIVE PROJECTS</span>
+                            ENTERPRISE WEB PORTALS
                           </h2>
                         </div>
-                        
                         <button 
                           onClick={() => setView('projects')}
-                          className="px-5 py-2.5 bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/20 hover:bg-[#00ff88] hover:text-[#050507] dark:hover:bg-[#00ff88] dark:hover:text-[#050507] transition-all rounded-xl text-xs font-bold tracking-wider font-label uppercase text-gray-800 dark:text-white flex items-center gap-2 cursor-pointer"
+                          className="text-xs font-bold font-label uppercase tracking-widest text-[#8cacff] hover:text-white flex items-center gap-2 group cursor-pointer"
                         >
-                          View Full Gallery <ExternalLink className="w-4 h-4" />
+                          View All Deployments ({projects.length})
+                          <ExternalLink className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </button>
                       </div>
 
-                      {/* 5 Live Projects Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {/* Project 1 */}
-                        <div className="group bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-[#00ff88]/50 transition-all duration-500 hover:-translate-y-1 shadow-lg">
-                          <div className="h-48 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80" alt="Arabian Enterprise" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <span className="absolute top-4 left-4 bg-slate-950/90 text-[#00ff88] text-[10px] font-bold font-label uppercase px-3 py-1 rounded-full border border-[#00ff88]/30">Enterprise Web</span>
-                          </div>
-                          <div className="p-6 flex flex-col justify-between h-[220px]">
-                            <div>
-                              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Arabian Enterprise</h3>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">Corporate enterprise web portal built for seamless business operations and client consultations.</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {projects.slice(0, 3).map((proj) => (
+                          <div key={proj.id} className="group relative bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-2xl border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                            <div className="h-52 overflow-hidden relative">
+                              <img 
+                                src={proj.image} 
+                                alt={proj.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                              />
+                              <div className="absolute top-4 left-4">
+                                <span className="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-bold font-mono text-[#00ff88] uppercase tracking-wider">
+                                  {proj.tag}
+                                </span>
+                              </div>
                             </div>
-                            <div className="pt-4 flex items-center justify-between">
-                              <a href="https://arbian-enterprise.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#00ff88] hover:underline flex items-center gap-1 font-label uppercase">
-                                Live Site <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <button onClick={() => setView('projects')} className="text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-white font-label uppercase">
-                                Preview →
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Project 2 */}
-                        <div className="group bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-[#00ff88]/50 transition-all duration-500 hover:-translate-y-1 shadow-lg">
-                          <div className="h-48 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80" alt="International Education Consultancy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <span className="absolute top-4 left-4 bg-slate-950/90 text-[#00ff88] text-[10px] font-bold font-label uppercase px-3 py-1 rounded-full border border-[#00ff88]/30">Education & Visa</span>
-                          </div>
-                          <div className="p-6 flex flex-col justify-between h-[220px]">
-                            <div>
-                              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">International Education Consultancy</h3>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">Study-abroad consultancy platform assisting students with global university programs and visa guidance.</p>
-                            </div>
-                            <div className="pt-4 flex items-center justify-between">
-                              <a href="https://international-education-consultancy.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#00ff88] hover:underline flex items-center gap-1 font-label uppercase">
-                                Live Site <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <button onClick={() => setView('projects')} className="text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-white font-label uppercase">
-                                Preview →
-                              </button>
+                            
+                            <div className="p-6">
+                              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{proj.title}</h3>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-6 line-clamp-2 leading-relaxed">{proj.description}</p>
+                              
+                              <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-white/10">
+                                <a 
+                                  href={proj.link}
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-xs font-bold text-[#8cacff] hover:text-blue-500 transition-colors flex items-center gap-1.5"
+                                >
+                                  Open Live Portal <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Project 3 */}
-                        <div className="group bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-[#00ff88]/50 transition-all duration-500 hover:-translate-y-1 shadow-lg">
-                          <div className="h-48 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1544396821-4dd40b938ad3?auto=format&fit=crop&w=800&q=80" alt="Local Drive Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <span className="absolute top-4 left-4 bg-slate-950/90 text-[#00ff88] text-[10px] font-bold font-label uppercase px-3 py-1 rounded-full border border-[#00ff88]/30">Cloud Storage</span>
-                          </div>
-                          <div className="p-6 flex flex-col justify-between h-[220px]">
-                            <div>
-                              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Local Drive Platform</h3>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">Fast, reliable cloud storage and file management web application for organizing user documents.</p>
-                            </div>
-                            <div className="pt-4 flex items-center justify-between">
-                              <a href="https://local-drive.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#00ff88] hover:underline flex items-center gap-1 font-label uppercase">
-                                Live Site <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <button onClick={() => setView('projects')} className="text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-white font-label uppercase">
-                                Preview →
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Project 4 */}
-                        <div className="group bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-[#00ff88]/50 transition-all duration-500 hover:-translate-y-1 shadow-lg">
-                          <div className="h-48 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80" alt="Local Drive Official Web" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <span className="absolute top-4 left-4 bg-slate-950/90 text-[#00ff88] text-[10px] font-bold font-label uppercase px-3 py-1 rounded-full border border-[#00ff88]/30">Official Portal</span>
-                          </div>
-                          <div className="p-6 flex flex-col justify-between h-[220px]">
-                            <div>
-                              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Local Drive Official Web</h3>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">Official web presence and promotional platform for Local Drive featuring product tours.</p>
-                            </div>
-                            <div className="pt-4 flex items-center justify-between">
-                              <a href="https://local-drive-official-web.netlify.app/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#00ff88] hover:underline flex items-center gap-1 font-label uppercase">
-                                Live Site <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <button onClick={() => setView('projects')} className="text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-white font-label uppercase">
-                                Preview →
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Project 5 */}
-                        <div className="group bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-[#00ff88]/50 transition-all duration-500 hover:-translate-y-1 shadow-lg">
-                          <div className="h-48 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80" alt="0 Zero Studio AI" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <span className="absolute top-4 left-4 bg-slate-950/90 text-[#00ff88] text-[10px] font-bold font-label uppercase px-3 py-1 rounded-full border border-[#00ff88]/30">AI Studio Suite</span>
-                          </div>
-                          <div className="p-6 flex flex-col justify-between h-[220px]">
-                            <div>
-                              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">0 Zero Studio AI</h3>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">All-in-one suite of generative AI tools, code helpers, and intelligent content creation workflows.</p>
-                            </div>
-                            <div className="pt-4 flex items-center justify-between">
-                              <a href="https://0zerostudioai.netlify.app/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#00ff88] hover:underline flex items-center gap-1 font-label uppercase">
-                                Live Site <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <button onClick={() => setView('projects')} className="text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-white font-label uppercase">
-                                Preview →
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </section>
 
-                    {/* SECTION 2: AI Suite Workspace Hub */}
-                    <section className="relative pt-12">
+                    {/* SECTION 2: AI Capabilities Matrix */}
+                    <section className="relative">
                       <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent mb-16" />
 
-                      <div className="text-center max-w-2xl mx-auto mb-16">
-                        <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#8cacff] font-label mb-2 block">Integrated Workspace</span>
+                      <div className="max-w-2xl mb-12">
+                        <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#8cacff] font-label mb-2 block">Intelligent Architecture</span>
                         <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 dark:text-white font-headline tracking-tight">
-                          AI PRODUCTIVITY <span className="bg-gradient-to-r from-[#8cacff] to-[#9bddff] bg-clip-text text-transparent">TOOLKIT</span>
+                          MULTI-MODAL AI WORKSUITE
                         </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-4 leading-relaxed">
-                          Elevate your workflow with specialized AI generators for code, resumes, emails, and cognitive learning.
-                        </p>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Tool 1 */}
-                        <div 
-                          onClick={() => setView('cv-builder')} 
-                          className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl hover:border-[#8cacff] transition-all duration-300 hover:-translate-y-1 cursor-pointer group shadow-sm"
-                        >
-                          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Sparkles className="w-6 h-6" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-3xl flex flex-col justify-between hover:border-[#8cacff]/40 transition-colors">
+                          <div>
+                            <div className="w-12 h-12 rounded-2xl bg-[#8cacff]/10 text-[#8cacff] flex items-center justify-center mb-4">
+                              <Sparkles className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">CV & Resume Builder</h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">Generate ATS-optimized resumes with scoring, keyword recommendations, and error detection.</p>
                           </div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">AI CV & Resume Builder</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-6">Build ATS-optimized, beautifully structured professional resumes in minutes.</p>
-                          <span className="text-xs font-bold text-[#8cacff] font-label uppercase flex items-center gap-1">Open Builder →</span>
+                          <button onClick={() => setView('cv-builder')} className="text-xs font-bold text-[#8cacff] flex items-center gap-1 hover:underline cursor-pointer">Launch Builder &rarr;</button>
                         </div>
 
-                        {/* Tool 2 */}
-                        <div 
-                          onClick={() => setView('cv-analyzer')} 
-                          className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl hover:border-[#8cacff] transition-all duration-300 hover:-translate-y-1 cursor-pointer group shadow-sm"
-                        >
-                          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Sparkles className="w-6 h-6" />
+                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-3xl flex flex-col justify-between hover:border-[#00ff88]/40 transition-colors">
+                          <div>
+                            <div className="w-12 h-12 rounded-2xl bg-[#00ff88]/10 text-[#00ff88] flex items-center justify-center mb-4">
+                              <Sparkles className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">Smart Email Writer</h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">Draft job inquiries, complaints, and professional responses in seconds with custom tones.</p>
                           </div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">AI Resume Score & Analyzer</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-6">Analyze resume ATS compliance, detect mistakes, and get improvement scores.</p>
-                          <span className="text-xs font-bold text-[#8cacff] font-label uppercase flex items-center gap-1">Analyze Resume →</span>
+                          <button onClick={() => setView('email-writer')} className="text-xs font-bold text-[#00ff88] flex items-center gap-1 hover:underline cursor-pointer">Launch Writer &rarr;</button>
                         </div>
 
-                        {/* Tool 3 */}
-                        <div 
-                          onClick={() => setView('ai-code')} 
-                          className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl hover:border-[#8cacff] transition-all duration-300 hover:-translate-y-1 cursor-pointer group shadow-sm"
-                        >
-                          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Sparkles className="w-6 h-6" />
+                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-3xl flex flex-col justify-between hover:border-[#9bddff]/40 transition-colors">
+                          <div>
+                            <div className="w-12 h-12 rounded-2xl bg-[#9bddff]/10 text-[#9bddff] flex items-center justify-center mb-4">
+                              <Sparkles className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">SOP Generator & Audit</h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">Create comprehensive Statement of Purpose documents for universities and student visas.</p>
                           </div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">AI Neural Code Generator</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-6">Generate HTML, Java, Python, and full-stack component code instantly.</p>
-                          <span className="text-xs font-bold text-[#8cacff] font-label uppercase flex items-center gap-1">Generate Code →</span>
+                          <button onClick={() => setView('sop-writer')} className="text-xs font-bold text-[#9bddff] flex items-center gap-1 hover:underline cursor-pointer">Generate SOP &rarr;</button>
                         </div>
 
-                        {/* Tool 4 */}
-                        <div 
-                          onClick={() => setView('email-writer')} 
-                          className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl hover:border-[#8cacff] transition-all duration-300 hover:-translate-y-1 cursor-pointer group shadow-sm"
-                        >
-                          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Sparkles className="w-6 h-6" />
+                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-3xl flex flex-col justify-between hover:border-[#7b5ea7]/40 transition-colors">
+                          <div>
+                            <div className="w-12 h-12 rounded-2xl bg-[#7b5ea7]/10 text-[#7b5ea7] flex items-center justify-center mb-4">
+                              <Sparkles className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">ChatGPT Website Builder</h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-4">Live conversational coding assistant generating responsive HTML, CSS, and Tailwind components.</p>
                           </div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">AI Email & Response Suite</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-6">Craft job applications, business proposals, and intelligent email replies.</p>
-                          <span className="text-xs font-bold text-[#8cacff] font-label uppercase flex items-center gap-1">Write Emails →</span>
-                        </div>
-
-                        {/* Tool 5 */}
-                        <div 
-                          onClick={() => setView('sop-writer')} 
-                          className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl hover:border-[#8cacff] transition-all duration-300 hover:-translate-y-1 cursor-pointer group shadow-sm"
-                        >
-                          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Sparkles className="w-6 h-6" />
-                          </div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">AI SOP & Statement Writer</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-6">Create university SOPs, visa motivation letters, and statement checkers.</p>
-                          <span className="text-xs font-bold text-[#8cacff] font-label uppercase flex items-center gap-1">Draft SOP →</span>
-                        </div>
-
-                        {/* Tool 6 */}
-                        <div 
-                          onClick={() => setView('zero-ai-learner')} 
-                          className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl hover:border-[#8cacff] transition-all duration-300 hover:-translate-y-1 cursor-pointer group shadow-sm"
-                        >
-                          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Sparkles className="w-6 h-6" />
-                          </div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Zero AI Learner Studio</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-6">Neural summaries, learning maps, and real-time cognitive practice engine.</p>
-                          <span className="text-xs font-bold text-[#8cacff] font-label uppercase flex items-center gap-1">Launch Studio →</span>
+                          <button 
+                            onClick={() => {
+                              setIsWebsiteBuilder(true);
+                              setInitialStudioMode('Website');
+                              setView('zero-studio');
+                            }} 
+                            className="text-xs font-bold text-[#7b5ea7] flex items-center gap-1 hover:underline cursor-pointer"
+                          >
+                            Open Website Architect &rarr;
+                          </button>
                         </div>
                       </div>
                     </section>
 
-                    {/* SECTION 3: Performance Metrics & Real-Time Stats Band */}
-                    <section className="relative py-12">
+                    {/* SECTION 3: Performance Metrics */}
+                    <section className="relative">
+                      <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent mb-16" />
+
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
-                          <span className="text-4xl sm:text-5xl font-black text-[#8cacff] font-headline block mb-2">50+</span>
-                          <span className="text-xs font-bold font-label uppercase tracking-wider text-gray-600 dark:text-gray-400">Deployed Projects</span>
+                        <div className="p-8 rounded-3xl bg-white/40 dark:bg-[#0c1427]/40 backdrop-blur-xl border border-gray-200 dark:border-white/10">
+                          <span className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white font-headline block mb-2">99.9%</span>
+                          <span className="text-xs font-bold font-label uppercase tracking-wider text-gray-600 dark:text-gray-400">Uptime Reliability</span>
                         </div>
-                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
-                          <span className="text-4xl sm:text-5xl font-black text-[#00ff88] font-headline block mb-2">100%</span>
-                          <span className="text-xs font-bold font-label uppercase tracking-wider text-gray-600 dark:text-gray-400">Client Satisfaction</span>
+                        <div className="p-8 rounded-3xl bg-white/40 dark:bg-[#0c1427]/40 backdrop-blur-xl border border-gray-200 dark:border-white/10">
+                          <span className="text-4xl sm:text-6xl font-black text-[#00ff88] font-headline block mb-2">&lt;200ms</span>
+                          <span className="text-xs font-bold font-label uppercase tracking-wider text-gray-600 dark:text-gray-400">Response Latency</span>
                         </div>
-                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
-                          <span className="text-4xl sm:text-5xl font-black text-[#9bddff] font-headline block mb-2">&lt; 1.2s</span>
-                          <span className="text-xs font-bold font-label uppercase tracking-wider text-gray-600 dark:text-gray-400">Load Speed</span>
+                        <div className="p-8 rounded-3xl bg-white/40 dark:bg-[#0c1427]/40 backdrop-blur-xl border border-gray-200 dark:border-white/10">
+                          <span className="text-4xl sm:text-6xl font-black text-[#8cacff] font-headline block mb-2">22+</span>
+                          <span className="text-xs font-bold font-label uppercase tracking-wider text-gray-600 dark:text-gray-400">AI Models Integrated</span>
                         </div>
-                        <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
-                          <span className="text-4xl sm:text-5xl font-black text-[#7b5ea7] font-headline block mb-2">24/7</span>
+                        <div className="p-8 rounded-3xl bg-white/40 dark:bg-[#0c1427]/40 backdrop-blur-xl border border-gray-200 dark:border-white/10">
+                          <span className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white font-headline block mb-2">24/7</span>
                           <span className="text-xs font-bold font-label uppercase tracking-wider text-gray-600 dark:text-gray-400">AI Availability</span>
                         </div>
                       </div>
@@ -527,7 +585,7 @@ export default function App() {
                             <Sparkles className="w-5 h-5" />
                           </div>
                           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Multi-Model AI Integration</h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Powered by Google Gemini models for deep contextual analysis, document scoring, and real-time generation.</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Powered by Google Gemini and Groq acceleration for deep contextual analysis and real-time generation.</p>
                         </div>
 
                         <div className="bg-white/40 dark:bg-[#0c1427]/60 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
@@ -557,8 +615,11 @@ export default function App() {
 
                       <div className="flex flex-wrap items-center gap-6">
                         <button onClick={() => setView('projects')} className="hover:text-[#8cacff] transition-colors cursor-pointer">Projects</button>
-                        <button onClick={() => setView('zero-studio')} className="hover:text-[#8cacff] transition-colors cursor-pointer">Studio Code</button>
+                        <button onClick={() => { setIsWebsiteBuilder(false); setInitialStudioMode('Auto'); setView('zero-studio'); }} className="hover:text-[#8cacff] transition-colors cursor-pointer">Studio Code</button>
                         <button onClick={() => setView('pricing')} className="hover:text-[#8cacff] transition-colors cursor-pointer">Pricing</button>
+                        <button onClick={() => setView('admin')} className="text-[#00ff88] hover:underline font-bold transition-colors cursor-pointer flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5" /> Admin Portal
+                        </button>
                         <a href="mailto:arafathrahman711@gmail.com" className="hover:text-[#8cacff] transition-colors">Contact</a>
                         <a href="https://github.com/smartworldarafath" target="_blank" rel="noopener noreferrer" className="hover:text-[#8cacff] transition-colors">GitHub</a>
                       </div>
@@ -567,16 +628,24 @@ export default function App() {
                   </div>
                 </motion.div>
               ) : view === 'pricing' ? (
-                <PricingPage key="pricing" onBack={() => setView('home')} />
+                <PricingPage 
+                  key="pricing" 
+                  onBack={() => setView('home')} 
+                  onActivatePlanSuccess={handlePlanActivationSuccess}
+                />
               ) : view === 'zero-studio' ? (
                 <ZeroStudioPage 
                   key="zero-studio" 
                   onBack={() => setView('home')} 
                   onPricingClick={() => setView('pricing')}
                   onProjectsClick={() => setView('projects')}
+                  initialMode={initialStudioMode}
+                  isWebsiteBuilder={isWebsiteBuilder}
                 />
               ) : view === 'projects' ? (
                 <ProjectsPage key="projects" onBack={() => setView('home')} />
+              ) : view === 'admin' ? (
+                <AdminPortal key="admin" onBack={() => setView('home')} />
               ) : view === 'zero-ai-learner' ? (
                 <ZeroAiLearnerPage
                   key="zero-ai-learner"
@@ -593,7 +662,7 @@ export default function App() {
                 <div className="relative">
                   <button 
                     onClick={() => setView('home')}
-                    className="mb-8 flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-sm font-bold text-black dark:text-white hover:bg-white/20 transition-all"
+                    className="mb-8 flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-sm font-bold text-black dark:text-white hover:bg-white/20 transition-all cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Home
@@ -610,7 +679,7 @@ export default function App() {
             </AnimatePresence>
           </main>
 
-          {view !== 'zero-studio' && <ChatBot />}
+          {view !== 'zero-studio' && view !== 'admin' && <ChatBot />}
 
           {/* Liquid Ripple Overlay Container */}
           {ripple && (

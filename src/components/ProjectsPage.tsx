@@ -1,96 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  ArrowLeft, Plus, ExternalLink, Sparkles, FolderGit2, X, 
+  ArrowLeft, ExternalLink, Sparkles, FolderGit2, X, 
   Code, Laptop, Globe, Maximize2, RefreshCw, Smartphone, Monitor, ShieldCheck, Copy, Check
 } from 'lucide-react';
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  tech: string[];
-  link: string;
-  embedLink?: string;
-  image: string;
-  tag: string;
-  duration: string;
-}
-
-const INITIAL_PROJECTS: Project[] = [
-  {
-    id: 'user-1',
-    title: 'Arabian Enterprise',
-    description: 'A modern corporate enterprise web portal built for seamless business operations, corporate services showcase, and client consultation.',
-    tech: ['React', 'Next.js', 'Tailwind CSS', 'Vercel'],
-    link: 'https://arbian-enterprise.vercel.app/',
-    embedLink: '/proxy/arbian-enterprise/',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-    tag: 'Enterprise Web',
-    duration: 'Live Project'
-  },
-  {
-    id: 'user-2',
-    title: 'International Education Consultancy',
-    description: 'A comprehensive education and study-abroad consultancy platform assisting students with global university programs, visa guidance, and admission processing.',
-    tech: ['React', 'TypeScript', 'Tailwind CSS', 'Vercel'],
-    link: 'https://international-education-consultancy.vercel.app/',
-    embedLink: '/proxy/international-education/',
-    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
-    tag: 'Education & Visa',
-    duration: 'Live Project'
-  },
-  {
-    id: 'user-3',
-    title: 'Local Drive Platform',
-    description: 'A fast, reliable cloud storage and file management web application designed for organizing, sharing, and securing user documents seamlessly.',
-    tech: ['React', 'Node.js', 'Tailwind CSS', 'Vercel'],
-    link: 'https://local-drive.vercel.app/',
-    embedLink: '/proxy/local-drive/',
-    image: 'https://images.unsplash.com/photo-1544396821-4dd40b938ad3?auto=format&fit=crop&w=1200&q=80',
-    tag: 'Cloud Storage',
-    duration: 'Live Project'
-  },
-  {
-    id: 'user-4',
-    title: 'Local Drive Official Web',
-    description: 'The official web presence and promotional platform for Local Drive, featuring interactive product tours, service highlights, and onboarding controls.',
-    tech: ['HTML5', 'Tailwind CSS', 'JavaScript', 'Netlify'],
-    link: 'https://local-drive-official-web.netlify.app/',
-    embedLink: '/proxy/local-drive-official/',
-    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
-    tag: 'Official Portal',
-    duration: 'Live Project'
-  },
-  {
-    id: 'user-5',
-    title: '0 Zero Studio AI',
-    description: 'An all-in-one suite of generative AI tools, code helpers, and intelligent content creation workflows engineered for modern developers and creators.',
-    tech: ['React', 'Gemini API', 'Tailwind CSS', 'Netlify'],
-    link: 'https://0zerostudioai.netlify.app/',
-    embedLink: '/proxy/0zerostudioai/',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
-    tag: 'AI Studio Suite',
-    duration: 'Live Project'
-  }
-];
+import { getStoredProjects, ProjectItem } from '../utils/storage';
 
 export function ProjectsPage({ onBack }: { onBack: () => void }) {
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [projects, setProjects] = useState<ProjectItem[]>(getStoredProjects());
   const [livePreviewMode, setLivePreviewMode] = useState<Record<string, 'image' | 'iframe'>>({});
-  const [fullscreenProject, setFullscreenProject] = useState<Project | null>(null);
+  const [fullscreenProject, setFullscreenProject] = useState<ProjectItem | null>(null);
   const [iframeDevice, setIframeDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Form states
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [techInput, setTechInput] = useState('');
-  const [projectLink, setProjectLink] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [tag, setTag] = useState('');
-  const [duration, setDuration] = useState('');
+  useEffect(() => {
+    const handleSync = () => {
+      setProjects(getStoredProjects());
+    };
+    window.addEventListener('zero_storage_sync', handleSync);
+    return () => window.removeEventListener('zero_storage_sync', handleSync);
+  }, []);
 
   const togglePreviewMode = (id: string, mode: 'image' | 'iframe') => {
     setLivePreviewMode(prev => ({ ...prev, [id]: mode }));
@@ -100,34 +29,6 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
     navigator.clipboard.writeText(link);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title || !description) return;
-
-    const newProject: Project = {
-      id: Date.now().toString(),
-      title,
-      description,
-      tech: techInput ? techInput.split(',').map(t => t.trim()).filter(Boolean) : ['React', 'Tailwind'],
-      link: projectLink.trim() || '#',
-      image: imageUrl.trim() || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
-      tag: tag.trim() || 'Custom Project',
-      duration: duration.trim() || 'Live Project'
-    };
-
-    setProjects([newProject, ...projects]);
-    setIsModalOpen(false);
-
-    // Reset Form
-    setTitle('');
-    setDescription('');
-    setTechInput('');
-    setProjectLink('');
-    setImageUrl('');
-    setTag('');
-    setDuration('');
   };
 
   return (
@@ -149,16 +50,7 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
             id="projects-back-btn"
           >
             <ArrowLeft className="w-5 h-5 text-[#00ff88]" />
-            <span className="text-sm font-semibold tracking-wide font-spacemono uppercase">Back to Studio</span>
-          </button>
-
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-[#00ff88] text-[#050507] hover:bg-[#00e077] transition-all duration-300 rounded-full font-bold shadow-lg shadow-[#00ff88]/10 hover:shadow-[#00ff88]/30 hover:-translate-y-1 active:scale-95 cursor-pointer"
-            id="add-project-btn"
-          >
-            <Plus className="w-5 h-5 stroke-[3]" />
-            <span className="text-xs tracking-wider uppercase font-spacemono">Add Custom Project</span>
+            <span className="text-sm font-semibold tracking-wide font-spacemono uppercase">Back to Home</span>
           </button>
         </div>
 
@@ -456,141 +348,6 @@ export function ProjectsPage({ onBack }: { onBack: () => void }) {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Add Project Dialog/Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            
-            {/* Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            />
-
-            {/* Modal Body */}
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="w-full max-w-xl bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 relative z-10 shadow-2xl overflow-hidden font-syne text-slate-900 dark:text-white"
-            >
-              {/* Vibe lines */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-[#00ff88]/10 rounded-full blur-2xl pointer-events-none" />
-
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-2">
-                  <FolderGit2 className="w-6 h-6 text-[#00ff88]" />
-                  <h2 className="text-2xl font-black tracking-tight text-slate-800 dark:text-white">ADD NEW PROJECT</h2>
-                </div>
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5 text-slate-500 dark:text-[#6b6b80]" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                
-                <div>
-                  <label className="block text-xs font-bold font-spacemono uppercase text-slate-500 dark:text-[#6b6b80] mb-1.5">Project Title</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Hyperion Analytical Console"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:border-[#00ff88] transition-all text-slate-800 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold font-spacemono uppercase text-slate-500 dark:text-[#6b6b80] mb-1.5">Description</label>
-                  <textarea 
-                    required
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Provide a high-fidelity summary of your project..."
-                    rows={3}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:border-[#00ff88] transition-all text-slate-800 dark:text-white resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold font-spacemono uppercase text-slate-500 dark:text-[#6b6b80] mb-1.5">Tag / Category</label>
-                    <input 
-                      type="text" 
-                      value={tag}
-                      onChange={(e) => setTag(e.target.value)}
-                      placeholder="e.g. AI SaaS, Creative"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:border-[#00ff88] transition-all text-slate-800 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold font-spacemono uppercase text-slate-500 dark:text-[#6b6b80] mb-1.5">Duration</label>
-                    <input 
-                      type="text" 
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      placeholder="e.g. 2 Months"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:border-[#00ff88] transition-all text-slate-800 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold font-spacemono uppercase text-slate-500 dark:text-[#6b6b80] mb-1.5">Live Project URL / Link</label>
-                  <input 
-                    type="url" 
-                    value={projectLink}
-                    onChange={(e) => setProjectLink(e.target.value)}
-                    placeholder="e.g. https://my-awesome-site.vercel.app/"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:border-[#00ff88] transition-all text-slate-800 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold font-spacemono uppercase text-slate-500 dark:text-[#6b6b80] mb-1.5">Tech Stack (comma separated)</label>
-                  <input 
-                    type="text" 
-                    value={techInput}
-                    onChange={(e) => setTechInput(e.target.value)}
-                    placeholder="e.g. React, Next.js, Redux, Tailwind"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:border-[#00ff88] transition-all text-slate-800 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold font-spacemono uppercase text-slate-500 dark:text-[#6b6b80] mb-1.5">Unsplash Image URL (Optional)</label>
-                  <input 
-                    type="url" 
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:border-[#00ff88] transition-all text-slate-800 dark:text-white"
-                  />
-                </div>
-
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="w-full py-3 bg-[#00ff88] text-[#050507] hover:bg-[#00e077] transition-colors rounded-xl font-bold tracking-wider font-spacemono uppercase cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <Sparkles className="w-4 h-4" /> Save Project & Publish
-                  </button>
-                </div>
-
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
     </div>
   );
 }

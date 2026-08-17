@@ -6,6 +6,6 @@
     { "source": "/proxy/local-drive-official/:match*", "destination": "https://local-drive-official-web.netlify.app/:match*" },
     { "source": "/proxy/local-drive/:match*", "destination": "https://local-drive.vercel.app/:match*" },
     { "source": "/proxy/0zerostudioai/:match*", "destination": "https://0zerostudioai.netlify.app/:match*" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!.*\\..*).*)", "destination": "/index.html" }
   ]
 }

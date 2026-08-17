@@ -227,11 +227,23 @@ const COMPANIES = ['Anthropic', 'Google', 'Open AI', 'Grok', 'Meta', 'Qwen', 'Ot
 
 export function ZeroStudioPage({ 
   onBack,
+  onPricingClick,
+  onProjectsClick,
+  initialMode,
+  isWebsiteBuilder
 }: { 
   onBack: () => void;
+  onPricingClick?: () => void;
+  onProjectsClick?: () => void;
+  initialMode?: InputMode;
+  isWebsiteBuilder?: boolean;
 }) {
-  const [selectedModel, setSelectedModel] = useState<ModelOption>(CATEGORIZED_MODELS.find(m => m.id === 'gemini-3.1-pro') || CATEGORIZED_MODELS[0]);
-  const [currentMode, setCurrentMode] = useState<InputMode>('Auto');
+  const isGptWebMode = isWebsiteBuilder || initialMode === 'Website';
+  const defaultGptModel = CATEGORIZED_MODELS.find(m => m.id === 'gpt-5.5' || m.id === 'gpt-5.6-luna') || CATEGORIZED_MODELS[0];
+  const [selectedModel, setSelectedModel] = useState<ModelOption>(
+    isGptWebMode ? defaultGptModel : (CATEGORIZED_MODELS.find(m => m.id === 'gemini-3.1-pro') || CATEGORIZED_MODELS[0])
+  );
+  const [currentMode, setCurrentMode] = useState<InputMode>(initialMode || (isWebsiteBuilder ? 'Website' : 'Auto'));
   const [modelThinkingLevels, setModelThinkingLevels] = useState<Record<string, ThinkingLevel>>({});
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -836,10 +848,14 @@ export function ZeroStudioPage({
                 </motion.div>
 
                 <h2 className="text-[40px] md:text-[52px] font-light tracking-[-0.03em] mb-3 leading-[1.1] transition-colors duration-500" style={{ fontFamily: "'Outfit', sans-serif", color: t.text }}>
-                  How can I help?
+                  {isGptWebMode || currentMode === 'Website' ? 'What website would you like to build?' : 'How can I help?'}
                 </h2>
                 <p className="text-sm max-w-md mx-auto font-light leading-relaxed mb-10 transition-colors duration-500" style={{ color: t.textMuted }}>
-                  Powered by <span className="text-[#c4b5fd] font-medium">{selectedModel.name}</span>
+                  {isGptWebMode || currentMode === 'Website' ? (
+                    <>ChatGPT Website Architect • Powered by <span className="text-[#c4b5fd] font-medium">{selectedModel.name}</span></>
+                  ) : (
+                    <>Powered by <span className="text-[#c4b5fd] font-medium">{selectedModel.name}</span></>
+                  )}
                   {selectedModel.isPro && selectedModel.tier && (
                     <span className="ml-1.5 text-[#34d399]/70 font-mono text-[10px]">[{getThinkingLevel(selectedModel)}]</span>
                   )}
@@ -847,7 +863,32 @@ export function ZeroStudioPage({
 
                 {/* Suggestion & Featured Showcase Cards Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-[600px]">
-                  {[
+                  {(isGptWebMode || currentMode === 'Website' ? [
+                    {
+                      icon: <Code className="w-5 h-5 text-emerald-400" />,
+                      title: 'Modern Landing Page',
+                      desc: 'Dark neon glassmorphism hero, features & pricing',
+                      prompt: 'Create a responsive modern dark landing page with glassmorphism effects, hero section, interactive feature cards, pricing table, and footer using HTML and Tailwind CSS'
+                    },
+                    {
+                      icon: <Globe className="w-5 h-5 text-sky-400" />,
+                      title: 'E-Commerce Storefront',
+                      desc: 'Product showcase, category filters & cart drawer',
+                      prompt: 'Create a clean modern e-commerce storefront with product cards, category filters, interactive cart drawer, and checkout modal using HTML, Tailwind CSS and JavaScript'
+                    },
+                    {
+                      icon: <Laptop className="w-5 h-5 text-violet-400" />,
+                      title: 'Developer Portfolio',
+                      desc: 'Interactive project grid, animated skills & contact',
+                      prompt: 'Create an ultra-sleek developer portfolio with interactive project cards, animated skill bars, contact form, and smooth scrolling using HTML and Tailwind CSS'
+                    },
+                    {
+                      icon: <Layers className="w-5 h-5 text-rose-400" />,
+                      title: 'SaaS Analytics Dashboard',
+                      desc: 'Sidebar layout, metric cards & data tables',
+                      prompt: 'Create a modern SaaS analytics dashboard with sidebar navigation, metric KPI cards, data tables, and chart placeholders using HTML and Tailwind CSS'
+                    }
+                  ] : [
                     { 
                       icon: <Globe className="w-5 h-5 text-emerald-400" />, 
                       title: 'Arabian Enterprise', 
@@ -872,15 +913,15 @@ export function ZeroStudioPage({
                       desc: 'CSS, layout, & logic errors', 
                       prompt: 'How do I center a div perfectly using modern CSS techniques like grid and flexbox?' 
                     }
-                  ].map((card, idx) => (
+                  ]).map((card, idx) => (
                     <motion.button
                       key={idx}
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 + idx * 0.08, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                       onClick={() => {
-                        if (card.url) {
-                          window.open(card.url, '_blank');
+                        if ((card as any).url) {
+                          window.open((card as any).url, '_blank');
                         } else if (card.prompt) {
                           generateAiResponse(card.prompt);
                         }
@@ -891,7 +932,7 @@ export function ZeroStudioPage({
                       <div className="mb-3 transition-colors duration-200">{card.icon}</div>
                       <h3 className="text-[12px] font-semibold mb-1 transition-colors flex items-center justify-between w-full" style={{ color: t.text }}>
                         {card.title}
-                        {card.url && <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" style={{ color: t.accent }} />}
+                        {(card as any).url && <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" style={{ color: t.accent }} />}
                       </h3>
                       <p className="text-[11px] font-light leading-relaxed" style={{ color: t.textMuted }}>{card.desc}</p>
                     </motion.button>
